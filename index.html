@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<title>Pendly</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
+.app{max-width:520px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 20px calc(90px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.logo{font-size:29px;font-weight:700;letter-spacing:-1px}.month{font-size:14px;color:#6e6e73}
+.card{background:rgba(255,255,255,.86);border:1px solid rgba(0,0,0,.06);border-radius:26px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.label{color:#6e6e73;font-size:15px}.saving{font-size:56px;letter-spacing:-3px;font-weight:700;margin:7px 0 20px}.sub{font-size:14px;color:#6e6e73}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.stat{background:#f5f5f7;border-radius:18px;padding:17px}.stat b{display:block;font-size:24px;margin-bottom:4px}.stat span{font-size:13px;color:#6e6e73}
+h2{font-size:22px;letter-spacing:-.5px;margin:30px 2px 14px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.action{border:0;border-radius:20px;padding:19px 10px;background:#fff;box-shadow:0 5px 20px rgba(0,0,0,.07);font-size:16px;font-weight:600;cursor:pointer}.action:active{transform:scale(.98)}.train{color:#007aff}.car{color:#1d1d1f}
+.row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid #e5e5ea}.row:last-child{border:0}.row small{display:block;color:#6e6e73;margin-top:3px}
+input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.88);backdrop-filter:blur(20px);border-top:1px solid #ddd;display:flex;justify-content:center;gap:70px;padding:13px 0 calc(13px + env(safe-area-inset-bottom));font-size:12px;color:#6e6e73}
+.bottom span:first-child{color:#007aff;font-weight:600}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(10px);background:#1d1d1f;color:#fff;padding:12px 18px;border-radius:18px;opacity:0;transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%)}
+
+.onboard{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:5;display:flex;align-items:center;justify-content:center;padding:24px}
+.onboard.hidden{display:none}.onbox{max-width:480px;width:100%;background:#fff;border-radius:30px;padding:30px 24px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.onbox h1{font-size:34px;letter-spacing:-1.5px;margin:0 0 8px}.onbox p{color:#6e6e73;line-height:1.45}.field{margin:18px 0}.field label{display:block;font-size:14px;color:#6e6e73;margin-bottom:7px}
+.primary{width:100%;border:0;border-radius:17px;padding:16px;background:#007aff;color:#fff;font-size:17px;font-weight:650;margin-top:8px}
+.goalbar{height:8px;background:#e5e5ea;border-radius:8px;overflow:hidden;margin-top:10px}.goalfill{height:100%;width:0;background:#007aff;border-radius:8px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.calhead{text-align:center;font-size:12px;color:#8e8e93;padding-bottom:3px}.calday{min-height:58px;border-radius:13px;background:#f5f5f7;text-align:center;padding:7px 3px;font-size:12px;cursor:pointer;user-select:none}.calday b{display:block;font-size:14px;margin-bottom:5px}.calday.train{background:#e8f2ff;color:#007aff}.calday.car{background:#eeeef0}.calday.home{background:#f8f8fa;color:#8e8e93}.calday.empty{opacity:.55}.calendarHint{font-size:13px;color:#6e6e73;margin-top:12px;text-align:center}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="onboard" id="onboard"><div class="onbox">
+<div id="q1">
+<h1>Willkommen bei Pendly.</h1><p>Wir schätzen zuerst deine echten Autokosten. Dauert etwa 1 Minute.</p>
+<div class="field"><label>Welchen Antrieb hat dein Auto?</label>
+<select id="oType" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+<option>Benzin</option><option>Diesel</option><option>Hybrid</option><option>Elektro</option></select></div>
+<div class="field"><label>Was hat dein Auto ungefähr gekostet? (€)</label><input id="oPrice" type="number" value="30000"></div>
+<div class="field"><label>Wie alt ist dein Auto? (Jahre)</label><input id="oAge" type="number" value="4"></div>
+<button class="primary" onclick="nextQ()">Weiter</button>
+</div>
+<div id="q2" style="display:none">
+<h1>Noch ein paar Fragen.</h1>
+<div class="field"><label>Wie viele km fährst du ungefähr pro Jahr?</label>
+<select id="oAnnual" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+<option value="7500">5.000–10.000 km</option><option value="12500">10.000–15.000 km</option><option value="17500">15.000–20.000 km</option><option value="22500">20.000–25.000 km</option><option value="30000">mehr als 25.000 km</option></select></div>
+<div class="field"><label id="oConsumptionLabel">Verbrauch (pro 100 km)</label><input id="oConsumption" type="number" step=".1" value="6.5"></div>
+<div class="field" id="fuelField"><label id="fuelLabel">Kraftstoffpreis (€ / Liter)</label><input id="oFuel" type="number" step=".01" value="1.75"></div>
+<button class="primary" onclick="nextQ2()">Weiter</button>
+</div>
+<div id="q3" style="display:none">
+<h1>Fast geschafft.</h1>
+<div class="field"><label>Versicherung pro Monat (€)</label><input id="oInsurance" type="number" value="90"></div>
+<div class="field"><label>Wartung, Reifen & Reparaturen pro Monat (€)</label><input id="oMaintenance" type="number" value="70"></div>
+<div class="field"><label>Steuer pro Jahr (€)</label><input id="oTax" type="number" value="180"></div>
+<div class="field"><label>Parken / Stellplatz pro Monat (€)</label><input id="oParking" type="number" value="0"></div>
+<button class="primary" onclick="nextQ3()">Weiter</button>
+</div>
+<div id="qticket" style="display:none">
+<h1>Wer bezahlt dein Zugticket?</h1>
+<p>Damit Pendly deine <b>persönliche</b> Ersparnis berechnen kann.</p>
+<div class="field"><label>Ticketkosten</label>
+<select id="oTicketMode" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+<option value="employer_full">Mein Arbeitgeber bezahlt es komplett</option>
+<option value="employer_part">Mein Arbeitgeber bezuschusst es</option>
+<option value="self">Ich bezahle es selbst</option>
+</select></div>
+<div class="field" id="ticketTotalField"><label>Ticketpreis pro Monat (€)</label><input id="oTicketTotal" type="number" step=".01" value="63"></div>
+<div class="field" id="ticketOwnField" style="display:none"><label>Mein Anteil pro Monat (€)</label><input id="oTicketOwn" type="number" step=".01" value="23"></div>
+<button class="primary" onclick="showResult()">Weiter</button>
+</div>
+<div id="q4" style="display:none">
+<h1>Deine Schätzung</h1><p>Pendly kombiniert deine Angaben mit einem pauschalen Wertverlust-Modell.</p>
+<div class="saving" id="oResult">0,00 €</div><div class="sub">geschätzte Autokosten pro Kilometer</div>
+<div class="stats"><div class="stat"><b id="oFuelPart">—</b><span>Energie / km</span></div><div class="stat"><b id="oFixedPart">—</b><span>Fixkosten / km</span></div></div>
+<button class="primary" onclick="finishOnboarding()">Passt 👍</button>
+</div>
+</div></div>
+<div class="app">
+<header><div class="logo">Pendly</div><div class="month" id="month"></div></header>
+<section class="card">
+<div class="label">Deine Ersparnis</div>
+<div class="saving" id="saving">0,00 €</div>
+<div class="sub">diesen Monat</div>
+<div class="stats">
+<div class="stat"><b id="trainDays">0</b><span>Zugfahrten</span></div>
+<div class="stat"><b id="carDays">0</b><span>Autofahrten</span></div>
+</div>
+</section>
+<h2>Wie bist du heute gefahren?</h2>
+<div class="actions">
+<button class="action train" onclick="travel('train')">🚆 Zug</button>
+<button class="action car" onclick="travel('car')">🚗 Auto</button>
+</div>
+<h2>Deine Kosten</h2>
+<section class="card">
+<div class="row"><div>Auto pro Arbeitstag<small>Hin & zurück, inkl. Fixkosten</small></div><b id="autoCost">—</b></div>
+<div class="row"><div>Zug pro Arbeitstag<small>Dein eigener Ticketanteil / Arbeitstage</small></div><b id="trainCost">—</b></div><div class="row"><div>Netto diesen Monat<small>Vermiedene Autokosten minus dein Ticket</small></div><b id="netMonth">—</b></div>
+<div class="row"><div>Heute vermiedene Autokosten</div><b id="perDay">—</b></div>
+</section>
+<h2>Dein Sparziel</h2>
+<section class="card"><div class="row"><div><b id="goalText">0 € / 2.000 €</b><small id="goalPct">0 % erreicht</small></div><div style="width:45px"><input id="goal" type="number" step="100" value="2000"></div></div><div class="goalbar"><div class="goalfill" id="goalFill"></div></div></section>
+<h2>Dieser Monat</h2>
+<section class="card"><div class="calendar" id="calendar"></div></section>
+<div class="calendarHint">Tippe auf einen Werktag, um ihn nachzutragen oder zu ändern.</div>
+<div class="onboard" id="dayEditor" style="display:none;z-index:10">
+  <div class="onbox">
+    <h1 id="editDateTitle">Fahrt eintragen</h1>
+    <p>Wie bist du an diesem Tag zur Arbeit gefahren?</p>
+    <div class="actions">
+      <button class="action train" onclick="setDay('train')">🚆 Zug</button>
+      <button class="action car" onclick="setDay('car')">🚗 Auto</button>
+    </div>
+    <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="clearDay()">Eintrag löschen</button>
+    <button class="primary" style="background:transparent;color:#007aff" onclick="closeEditor()">Abbrechen</button>
+  </div>
+</div>
+<h2>Finanzguru-Import</h2>
+<section class="card">
+  <div class="label">Tatsächliche Autokosten statt Schätzung</div>
+  <p class="sub" style="margin:8px 0 16px">Lade deinen Finanzguru-Excel-Export hoch. Pendly sucht darin automatisch nach Tanken, Kfz-Steuer, Parken, Werkstatt/Service, Kfz-Versicherung und Leasing.</p>
+  <input id="fgFile" type="file" accept=".xlsx,.xls,.csv" style="font-size:14px">
+  <div id="fgStatus" class="sub" style="margin-top:12px"></div>
+  <div id="fgResult" style="display:none;margin-top:14px">
+    <div class="stats">
+      <div class="stat"><b id="fgAnnual">—</b><span>erkannte Autoausgaben / Jahr</span></div>
+      <div class="stat"><b id="fgKmCost">—</b><span>Autoausgaben / km</span></div>
+    </div>
+    <p class="sub" style="margin-top:12px">Diese Auswertung nutzt deine echten Buchungen. Wertverlust und nicht erfasste Kosten sind noch nicht enthalten.</p>
+    <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="applyFinancialGuru()">Als Grundlage verwenden</button>
+  </div>
+</section>
+<h2>Setup</h2>
+<section class="card">
+<div class="row"><div>Geschätzte Autokosten / km<small>Wird aus deinen Angaben berechnet</small></div><b id="carKmDisplay">—</b></div><div class="row"><div>Jährliche Fahrleistung<small>Für den Finanzguru-Import</small></div><div style="width:105px"><input id="annualKm" type="number" step="500" value="12500"></div></div></div>
+<div class="row"><div>Versicherung / Monat</div><div style="width:105px"><input id="insurance" type="number" step=".01" value="0"></div></div>
+<div class="row"><div>Wartung & Reifen / Monat</div><div style="width:105px"><input id="maintenance" type="number" step=".01" value="0"></div></div>
+<div class="row"><div>Zugticket / Monat</div><div style="width:105px"><input id="ticket" type="number" step=".01" value="63"></div></div>
+<div class="row"><div>Arbeitstage / Monat</div><div style="width:105px"><input id="days" type="number" step="1" value="20"></div></div>
+<div class="row"><div>Entfernung Auto, einfach</div><div style="width:105px"><input id="distance" type="number" step=".1" value="20"></div></div>
+</section>
+</div>
+<div class="bottom"><span>⌂ Übersicht</span><span>▦ Statistik</span><span>⚙ Einstellungen</span></div>
+<div class="toast" id="toast"></div>
+<script>
+const key='pendly-v03';
+let data=JSON.parse(localStorage.getItem(key)||'{"train":0,"car":0,"events":{},"fgAnnual":0,"fgKmCost":0}');
+const $=id=>document.getElementById(id);
+const eur=n=>Number(n||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'});
+
+function updateFuelUI(){
+  const type=$('oType').value;
+  const elec=type==='Elektro';
+  $('fuelField').style.display=elec?'none':'block';
+  $('oConsumption').value=elec?'18':'6.5';
+  $('oConsumptionLabel').textContent=elec?'Verbrauch (kWh / 100 km)':'Verbrauch (Liter / 100 km)';
+}
+
+function nextQ(){
+  $('q1').style.display='none';
+  $('q2').style.display='block';
+  updateFuelUI();
+}
+
+function nextQ2(){
+  $('q2').style.display='none';
+  $('q3').style.display='block';
+}
+
+function nextQ3(){
+  $('q3').style.display='none';
+  $('qticket').style.display='block';
+  $('q4').style.display='none';
+}
+function updateTicketUI(){
+  const mode=$('oTicketMode').value;
+  $('ticketTotalField').style.display=mode==='employer_full'?'block':'none';
+  $('ticketOwnField').style.display=mode==='employer_part'||mode==='self'?'block':'none';
+}
+function showResult(){
+  $('qticket').style.display='none';
+  const type=$('oType').value;
+  const annual=+$('oAnnual').value||12500;
+  const price=+$('oPrice').value||30000;
+  const age=+$('oAge').value||4;
+  const cons=+$('oConsumption').value||0;
+  const fuel=+$('oFuel').value||0;
+
+  const energy=type==='Elektro' ? cons*0.38/100 : cons*fuel/100;
+  const insurance=(+$('oInsurance').value||0)*12/annual;
+  const maint=(+$('oMaintenance').value||0)*12/annual;
+  const tax=(+$('oTax').value||0)/annual;
+  const parking=(+$('oParking').value||0)*12/annual;
+  const depreciation=Math.max(0,price*(0.55+Math.min(age,10)*0.015))/Math.max(100000,annual*8);
+
+  window.onboardingKmCost=energy+insurance+maint+tax+parking+depreciation;
+  $('oFuelPart').textContent=eur(energy);
+  $('oFixedPart').textContent=eur(window.onboardingKmCost-energy);
+  $('oResult').textContent=eur(window.onboardingKmCost);
+
+  $('q3').style.display='none';
+  $('q4').style.display='block';
+}
+
+function finishOnboarding(){
+  try{
+    const cost=Number(window.onboardingKmCost||0);
+    if(!Number.isFinite(cost) || cost<=0){
+      alert('Die Autokosten konnten noch nicht berechnet werden.');
+      return;
+    }
+    $('carKm').value=cost.toFixed(3);
+    $('insurance').value=0;
+    $('maintenance').value=0;
+    const mode=$('oTicketMode').value;
+    const ownTicket=mode==='employer_full' ? 0 : (+$('oTicketOwn').value||+$('oTicketTotal').value||0);
+    $('ticket').value=ownTicket.toFixed(2);
+
+    // Save the onboarding result before closing it.
+    localStorage.setItem('pendly-onboard','1');
+    localStorage.setItem(key,JSON.stringify(data));
+
+    // Close the onboarding overlay and explicitly show the main app.
+    $('onboard').style.display='none';
+    $('onboard').classList.add('hidden');
+    const app=document.querySelector('.app');
+    if(app) app.style.display='block';
+
+    calc();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(err){
+    alert('Beim Speichern ist ein Fehler aufgetreten. Bitte versuche es noch einmal.');
+    console.error(err);
+  }
+}
+
+function normalizeText(v){
+  return String(v??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function parseFinancialGuru(rows){
+  let total=0, hits=0;
+  const terms=['tanken','tankstelle','kfz-steuer','kfz steuer','parken','werkstatt','service','kfz-versicherung','kfz versicherung','leasing','automobilklub','automobilclub','reifen'];
+  for(const row of rows){
+    const text=normalizeText(Object.values(row).join(' '));
+    if(!terms.some(t=>text.includes(t))) continue;
+    let amount=0;
+    for(const [k,v] of Object.entries(row)){
+      const key=normalizeText(k);
+      if(/betrag|amount|umsatz|summe|wert/.test(key)){
+        const n=typeof v==='number'?v:parseFloat(String(v).replace(/\./g,'').replace(',','.').replace(/[^\d.-]/g,''));
+        if(Number.isFinite(n)){amount=Math.abs(n);break;}
+      }
+    }
+    if(amount>0){total+=amount;hits++;}
+  }
+  return {total,hits};
+}
+async function importFinancialGuru(file){
+  $('fgStatus').textContent='Datei wird analysiert …';
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    let rows=[];
+    wb.SheetNames.forEach(name=>{
+      rows=rows.concat(XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:''}));
+    });
+    const result=parseFinancialGuru(rows);
+    if(!result.hits){
+      $('fgStatus').textContent='Ich konnte keine passenden Auto-Buchungen erkennen. Prüfe bitte, ob du den Finanzguru-Excel-Export hochgeladen hast.';
+      return;
+    }
+    const annual=result.total;
+    const km=+$('annualKm').value||+$('oAnnual').value||12500;
+    data.fgAnnual=annual;
+    data.fgKmCost=annual/km;
+    $('fgAnnual').textContent=eur(annual);
+    $('fgKmCost').textContent=eur(data.fgKmCost);
+    $('fgResult').style.display='block';
+    $('fgStatus').textContent=`${result.hits} passende Buchungen erkannt.`;
+    localStorage.setItem(key,JSON.stringify(data));
+  }catch(e){
+    $('fgStatus').textContent='Die Datei konnte nicht gelesen werden. Bitte einen XLSX- oder CSV-Export aus Finanzguru verwenden.';
+  }
+}
+function applyFinancialGuru(){
+  if(data.fgKmCost>0){
+    $('carKm').value=data.fgKmCost.toFixed(3);
+    calc();
+    $('fgStatus').textContent='Finanzguru-Daten werden jetzt als Grundlage verwendet.';
+  }
+}
+function calc(){
+  const km=+$('carKm').value||0;
+  if($('carKmDisplay')) $('carKmDisplay').textContent=km.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €/km';
+  const ticket=+$('ticket').value||0;
+  const days=+$('days').value||1;
+  const dist=+$('distance').value||0;
+  const extra=((+$('insurance').value||0)+(+$('maintenance').value||0))/days;
+  const auto=km*dist*2+extra;
+  const train=ticket/days;
+  const per=Math.max(0,auto);
+  const saved=per*data.train;
+  const net=Math.max(0,saved-ticket);
+
+  $('autoCost').textContent=eur(auto);
+  $('trainCost').textContent=eur(train);
+  $('perDay').textContent=eur(per);$('netMonth').textContent=eur(net);
+  $('saving').textContent=eur(saved);
+  $('trainDays').textContent=data.train;
+  $('carDays').textContent=data.car;
+
+  const goal=+$('goal').value||2000;
+  const pct=Math.min(100,saved/goal*100);
+  $('goalText').textContent=`${eur(saved)} / ${eur(goal)}`;
+  $('goalPct').textContent=`${Math.round(pct)} % erreicht`;
+  $('goalFill').style.width=pct+'%';
+
+  renderCalendar();
+  localStorage.setItem(key,JSON.stringify(data));
+}
+
+function travel(type){
+  const day=new Date().toISOString().slice(0,10);
+  const old=data.events[day];
+  if(old===type)return;
+  if(old==='train')data.train=Math.max(0,data.train-1);
+  if(old==='car')data.car=Math.max(0,data.car-1);
+  data.events[day]=type;
+  if(type==='train')data.train++; else data.car++;
+  calc();
+
+  let amount=type==='train'
+    ? Math.max(0,(+$('carKm').value||0)*(+$('distance').value||0)*2-(+$('ticket').value||0)/(+$('days').value||1))
+    : 0;
+  $('toast').textContent=type==='train'?`+ ${eur(amount)} gespart`:'Autofahrt gespeichert';
+  $('toast').classList.add('show');
+  setTimeout(()=>$('toast').classList.remove('show'),1400);
+}
+
+function renderCalendar(){
+  const el=$('calendar');
+  if(!el)return;
+  el.innerHTML=['Mo','Di','Mi','Do','Fr','Sa','So'].map(x=>`<div class="calhead">${x}</div>`).join('');
+  const now=new Date(), year=now.getFullYear(), month=now.getMonth();
+  const first=new Date(year,month,1), last=new Date(year,month+1,0);
+  const offset=first.getDay();
+  for(let i=0;i<offset;i++) el.innerHTML+='<div class="calday empty"></div>';
+  for(let d=1;d<=last.getDate();d++){
+    const date=new Date(year,month,d), dow=date.getDay();
+    const iso=date.toISOString().slice(0,10), type=data.events[iso]||'';
+    const icon=type==='train'?'🚆':type==='car'?'🚗':'·';
+    el.innerHTML+=`<div class="calday ${type}" onclick="openEditor('${iso}')"><b>${d}</b>${icon}</div>`;
+  }
+}
+let editingDay=null;
+function openEditor(iso){
+  editingDay=iso;
+  const d=new Date(iso+'T12:00:00');
+  $('editDateTitle').textContent=d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+  $('dayEditor').style.display='flex';
+}
+function closeEditor(){editingDay=null;$('dayEditor').style.display='none'}
+function setDay(type){
+  if(!editingDay)return;
+  const old=data.events[editingDay];
+  if(old===type){closeEditor();return}
+  if(old==='train')data.train=Math.max(0,data.train-1);
+  if(old==='car')data.car=Math.max(0,data.car-1);
+  data.events[editingDay]=type;
+  if(type==='train')data.train++; else data.car++;
+  closeEditor();calc();
+}
+function clearDay(){
+  if(!editingDay)return;
+  const old=data.events[editingDay];
+  if(old==='train')data.train=Math.max(0,data.train-1);
+  if(old==='car')data.car=Math.max(0,data.car-1);
+  delete data.events[editingDay];
+  closeEditor();calc();
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  $('oType').addEventListener('change',updateFuelUI);
+  $('fgFile').addEventListener('change',e=>{if(e.target.files[0])importFinancialGuru(e.target.files[0]);});
+  $('oTicketMode').addEventListener('change',updateTicketUI);
+  updateTicketUI();
+  ['carKm','ticket','days','distance','insurance','maintenance','goal','annualKm'].forEach(id=>{
+    $(id).addEventListener('input',calc);
+  });
+  $('month').textContent=new Date().toLocaleDateString('de-DE',{month:'long',year:'numeric'});
+  if(localStorage.getItem('pendly-onboard')) $('onboard').classList.add('hidden');
+  // Legacy versions used 0.35 €/km as a placeholder. Replace that placeholder
+  // with a transparent estimate from the user's stored monthly costs.
+  if(Math.abs((+$('carKm').value||0)-0.35)<0.0001 && !data.fgKmCost){
+    const annual=+$('annualKm').value||12500;
+    const fixed=(+$('insurance').value||0)*12+(+$('maintenance').value||0)*12;
+    if(fixed>0) $('carKm').value=(fixed/annual).toFixed(3);
+  }
+  calc();
+});
+</script>
+</body></html>
