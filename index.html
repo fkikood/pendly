@@ -1149,12 +1149,17 @@ function resetData(){
 }
 document.addEventListener('DOMContentLoaded',async()=>{
   $('accountBtn').addEventListener('click',accountMenu);
-  const savedFuelSettings=JSON.parse(localStorage.getItem('pendly-settings-'+(currentUser?.id||'guest'))||'null');
-  if(savedFuelSettings){
-    if($('setFuelConsumption')) $('setFuelConsumption').value=savedFuelSettings.fuelConsumption||'';
-    if($('setFuelPrice')) $('setFuelPrice').value=savedFuelSettings.fuelPrice||'';
-    if($('setFuelType')) $('setFuelType').value=savedFuelSettings.fuelType||'e5';
-    if($('setFuelPostcode')) $('setFuelPostcode').value=savedFuelSettings.fuelPostcode||'';
+  // Defensive loading: a malformed local setting must never stop the auth flow.
+  try{
+    const savedFuelSettings=JSON.parse(localStorage.getItem('pendly-settings-'+(currentUser?.id||'guest'))||'null');
+    if(savedFuelSettings){
+      if($('setFuelConsumption')) $('setFuelConsumption').value=savedFuelSettings.fuelConsumption||'';
+      if($('setFuelPrice')) $('setFuelPrice').value=savedFuelSettings.fuelPrice||'';
+      if($('setFuelType')) $('setFuelType').value=savedFuelSettings.fuelType||'e5';
+      if($('setFuelPostcode')) $('setFuelPostcode').value=savedFuelSettings.fuelPostcode||'';
+    }
+  }catch(_e){
+    try{localStorage.removeItem('pendly-settings-'+(currentUser?.id||'guest'));}catch(__e){}
   }
   $('oType').addEventListener('change',updateFuelUI);
   $('fgFile').addEventListener('change',e=>{if(e.target.files[0])importFinancialGuru(e.target.files[0]);});
