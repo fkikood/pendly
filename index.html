@@ -180,9 +180,9 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <h2>Dieser Monat</h2>
 <section class="card">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
-    <button type="button" id="calendarPrev" class="action" style="padding:10px 14px;box-shadow:none;background:#f5f5f7" aria-label="Vorheriger Monat">‹</button>
+    <button class="action" style="padding:10px 14px;box-shadow:none;background:#f5f5f7" id="calendarPrev" type="button" aria-label="Vorheriger Monat">‹</button>
     <div style="text-align:center;flex:1"><b id="calendarTitle">—</b></div>
-    <button type="button" id="calendarNext" class="action" style="padding:10px 14px;box-shadow:none;background:#f5f5f7" aria-label="Nächster Monat">›</button>
+    <button class="action" style="padding:10px 14px;box-shadow:none;background:#f5f5f7" id="calendarNext" type="button" aria-label="Nächster Monat">›</button>
   </div>
   <div class="calendar" id="calendar"></div>
 </section>
@@ -757,18 +757,6 @@ function updateMonthlyReview(){
   $('milestoneText').textContent=st.train>=10?'Du bist auf einem starken Weg.':'Noch '+Math.max(0,10-st.train)+' bis zum ersten Meilenstein.';
 }
 function calc(){
-  const carKm = +$("carKm").value || 0;
-  const avoidableKm = +$("avoidableKm").value || carKm;
-  const dist = +$("distance").value || 0;
-  const daysPerMonth = +$("days").value || 20;
-  const ticket = +$("ticket").value || 0;
-  const trainDays = data.train || 0;
-  const carDays = data.car || 0;
-  const avoidablePerTrip = avoidableKm * dist * 2;
-  const ticketPerTrainDay = ticket / Math.max(1, daysPerMonth);
-  const savingPerTrainDay = Math.max(0, avoidablePerTrip - ticketPerTrainDay);
-  const monthlySaving = savingPerTrainDay * trainDays;
-  
   // Always rebuild the counters from the dated events before calculating
   // savings. This prevents legacy/stale counters from forcing the breakdown
   // to 0,00 €.
@@ -779,6 +767,7 @@ function calc(){
   const ticket=+$('ticket').value||0;
   const days=+$('days').value||1;
   const dist=+$('distance').value||0;
+  if($('perDay') && dist<=0) $('perDay').textContent='Bitte Strecke in Einstellungen eintragen';
 
   const insuranceMonthly=(+$('insurance').value||0);
   const maintenanceMonthly=(+$('maintenance').value||0);
@@ -807,7 +796,7 @@ function calc(){
 
   $('autoCost').textContent=eur(fullTrip);
   $('trainCost').textContent=eur(train);
-  $('perDay').textContent=eur(avoidableTrip);
+  $('perDay').textContent=dist>0?eur(avoidableTrip):'Bitte Strecke in Einstellungen eintragen';
   $('netMonth').textContent=eur(net);
   $('saving').textContent=eur(net);
   $('trainDays').textContent=data.train;
@@ -832,10 +821,6 @@ function calc(){
   renderCalendar();
   localStorage.setItem(currentUser?localDataKey(currentUser.id):key,JSON.stringify(data));
   scheduleCloudSave();
-  if($("perDay")) $("perDay").textContent = eur(savingPerTrainDay);
-  if($("netMonth")) $("netMonth").textContent = eur(monthlySaving);
-  if($("saving")) $("saving").textContent = eur(monthlySaving);
-}
 }
 
 function localISODate(date=new Date()){
@@ -845,29 +830,19 @@ function localISODate(date=new Date()){
   return `${y}-${m}-${d}`;
 }
 
-let calendarDate = new Date();
-calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+let calendarDate=new Date();
+calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth(),1);
 
 function changeCalendarMonth(delta){
-  calendarDate = new Date(
-    calendarDate.getFullYear(),
-    calendarDate.getMonth() + Number(delta),
-    1
-  );
+  calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()+Number(delta),1);
   renderCalendar();
 }
 
 function bindCalendarMonthButtons(){
-  const prev = document.getElementById('calendarPrev');
-  const next = document.getElementById('calendarNext');
-  if(prev && !prev.dataset.bound){
-    prev.dataset.bound = '1';
-    prev.addEventListener('click', () => changeCalendarMonth(-1));
-  }
-  if(next && !next.dataset.bound){
-    next.dataset.bound = '1';
-    next.addEventListener('click', () => changeCalendarMonth(1));
-  }
+  const prev=$('calendarPrev');
+  const next=$('calendarNext');
+  if(prev && !prev.dataset.bound){ prev.dataset.bound='1'; prev.addEventListener('click',()=>changeCalendarMonth(-1)); }
+  if(next && !next.dataset.bound){ next.dataset.bound='1'; next.addEventListener('click',()=>changeCalendarMonth(1)); }
 }
 
 function goToCurrentMonth(){
