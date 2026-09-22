@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.12.0</title>
+<title>Pendly v0.12.6</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -18,7 +18,58 @@ h2{font-size:22px;letter-spacing:-.5px;margin:30px 2px 14px}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.action{border:0;border-radius:20px;padding:19px 10px;background:#fff;box-shadow:0 5px 20px rgba(0,0,0,.07);font-size:16px;font-weight:600;cursor:pointer}.action:active{transform:scale(.98)}.train{color:#007aff}.car{color:#1d1d1f}
 .row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid #e5e5ea}.row:last-child{border:0}.row small{display:block;color:#6e6e73;margin-top:3px}
 input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.88);backdrop-filter:blur(20px);border-top:1px solid #ddd;display:flex;justify-content:center;gap:10px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));font-size:12px;color:#6e6e73;z-index:20}.bottom button{flex:1;max-width:150px;border:0;background:transparent;color:#6e6e73;border-radius:14px;padding:9px 6px;font-size:13px}.bottom button.active{color:#007aff;font-weight:650;background:#f2f7ff}.bottom button span{margin-left:4px}
+.bottom{
+  position:fixed;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  width:min(480px,calc(100% - 24px));
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:22px;
+  box-shadow:0 10px 35px rgba(0,0,0,.10);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:5px;
+  padding:6px;
+  z-index:20;
+}
+.bottom button{
+  min-width:0;
+  border:0;
+  background:transparent;
+  color:#6e6e73;
+  border-radius:17px;
+  padding:9px 4px 8px;
+  font-size:11px;
+  line-height:1.1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  cursor:pointer;
+  transition:background .18s ease,color .18s ease,transform .18s ease;
+}
+.bottom button:active{transform:scale(.97)}
+.bottom button.active{
+  color:#007aff;
+  background:#eef5ff;
+  font-weight:650;
+}
+.bottom .navIcon{
+  font-size:19px;
+  line-height:18px;
+  height:19px;
+  display:block;
+}
+.bottom .navLabel{
+  margin:0;
+  white-space:nowrap;
+}
+
 .bottom span:first-child{color:#007aff;font-weight:600}
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(10px);background:#1d1d1f;color:#fff;padding:12px 18px;border-radius:18px;opacity:0;transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%)}
 
@@ -62,7 +113,10 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 
 <div class="auth" id="auth">
   <div class="authbox">
-    <div class="logo">Pendly</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div class="logo">Pendly</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.12.6</div>
+    </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
     <div class="authswitch">
@@ -144,6 +198,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <button class="action train" onclick="travel('train')">🚆 Zug</button>
 <button class="action car" onclick="travel('car')">🚗 Auto</button>
 </div>
+
 <h2>Deine Kosten</h2>
 <section class="card">
 <div class="row"><div>Auto pro Arbeitstag<small>Hin & zurück, inkl. laufender Fixkosten</small></div><b id="autoCost">—</b></div>
@@ -276,6 +331,25 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="row"><div><b>Versicherung</b><small>pro Monat</small></div><div style="width:110px"><input id="setInsurance" type="number" step=".01"></div></div>
   <div class="row"><div><b>Wartung & Reifen</b><small>pro Monat</small></div><div style="width:110px"><input id="setMaintenance" type="number" step=".01"></div></div>
 </section>
+
+<h2>Kraftstoff / Energie</h2>
+<section class="card">
+  <p class="sub" style="margin:0 0 12px">Hier kannst du deine Kraftstoffkosten ergänzen. Pendly verwendet sie direkt für die Berechnung deiner vermeidbaren Autokosten.</p>
+  <div class="row">
+    <div><b>Verbrauch</b><small>Liter pro 100 km</small></div>
+    <div style="width:130px"><input id="setFuelConsumption" type="number" step="0.1" min="0" placeholder="6,5"></div>
+  </div>
+  <div class="row">
+    <div><b>Kraftstoffpreis</b><small>aktueller Preis pro Liter</small></div>
+    <div style="width:130px"><input id="setFuelPrice" type="number" step="0.01" min="0" placeholder="1,75"></div>
+  </div>
+  <div class="row">
+    <div><b>Kraftstoffkosten / km</b><small>wird automatisch berechnet</small></div>
+    <b id="setFuelKmDisplay">0,000 €/km</b>
+  </div>
+  <button class="primary" type="button" onclick="saveFuelSettings()">Kraftstoffkosten speichern</button>
+  <div id="fuelSettingsHint" class="sub" style="margin-top:10px"></div>
+</section>
 <h2>Weitere Fixkosten</h2>
 <section class="card">
   <div class="row"><div><b>Kfz-Steuer</b><small>pro Jahr</small></div><div style="width:110px"><input id="setTax" type="number" step=".01"></div></div>
@@ -307,11 +381,17 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 </div>
 </div>
-<div class="bottom" id="bottomNav">
-<button class="active" onclick="showTab('overview',this)">⌂ <span>Übersicht</span></button>
-<button onclick="showTab('stats',this)">▦ <span>Statistik</span></button>
-<button onclick="showTab('settings',this)">⚙ <span>Einstellungen</span></button>
-</div>
+<nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
+  <button class="active" type="button" onclick="showTab('overview',this)">
+    <span class="navIcon">⌂</span><span class="navLabel">Übersicht</span>
+  </button>
+  <button type="button" onclick="showTab('stats',this)">
+    <span class="navIcon">▥</span><span class="navLabel">Statistik</span>
+  </button>
+  <button type="button" onclick="showTab('settings',this)">
+    <span class="navIcon">⚙</span><span class="navLabel">Einstellungen</span>
+  </button>
+</nav>
 <div class="toast" id="toast"></div>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -432,7 +512,7 @@ async function loadUserData(){
 function getSettings(){
   return {
     carKm:+($('carKm')?.value||0), avoidableKm:+($('avoidableKm')?.value||0), annualKm:+($('annualKm')?.value||0),
-    fuelKm:+($('fuelKm')?.value||0), maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0),
+    fuelKm:+($('fuelKm')?.value||0), fuelConsumption:+($('setFuelConsumption')?.value||0), fuelPrice:+($('setFuelPrice')?.value||0), maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0),
     insurance:+($('insurance')?.value||0), maintenance:+($('maintenance')?.value||0),
     tax:+($('tax')?.value||0), parking:+($('parking')?.value||0),
     ticket:+($('ticket')?.value||0), days:+($('days')?.value||0),
@@ -464,32 +544,43 @@ function repairCostBreakdown(){
   const tax=Math.max(0,+$('tax').value||0);
   const parking=Math.max(0,+$('parking').value||0);
 
-  // Insurance, tax and parking are fixed costs and therefore are not
-  // avoidable when one commuting day is replaced by train.
+  // Fixed costs do not become avoidable when a commuting day is replaced.
   const fixedKm=(insurance*12+tax+parking*12)/annual;
+
   let avoidable=Math.max(0,+$('avoidableKm').value||0);
   let fuel=Math.max(0,+$('fuelKm').value||0);
   let maintKm=Math.max(0,+$('maintenanceKm').value||0);
   let depr=Math.max(0,+$('depreciationKm').value||0);
+
+  // Recover the fuel component for older profiles when the user has entered
+  // consumption and fuel price in the settings.
+  const consumption=Math.max(0,+$('setFuelConsumption')?.value||0);
+  const fuelPrice=Math.max(0,+$('setFuelPrice')?.value||0);
+  if(fuel<=0 && consumption>0 && fuelPrice>0){
+    fuel=consumption*fuelPrice/100;
+  }
 
   // Repair old profiles where only the total car cost was stored.
   if(avoidable<=0 && totalKm>0){
     avoidable=Math.max(0,totalKm-fixedKm);
   }
 
-  // If the exact component split is missing, preserve the total avoidable
-  // amount and derive maintenance from the existing monthly maintenance
-  // setting. The remaining amount is kept as depreciation; fuel is left at
-  // zero because its exact historic value is not recoverable from the saved profile.
-  if(avoidable>0 && fuel+maintKm+depr<=0){
-    maintKm=Math.min(avoidable,Math.max(0,+$('maintenance').value||0)*12/annual);
-    depr=Math.max(0,avoidable-maintKm);
+  // If the exact component split is missing, keep the recovered fuel amount
+  // and distribute only the remaining avoidable amount.
+  if(avoidable>0 && maintKm+depr<=0){
+    const remaining=Math.max(0,avoidable-fuel);
+    maintKm=Math.min(remaining,Math.max(0,+$('maintenance').value||0)*12/annual);
+    depr=Math.max(0,remaining-maintKm);
   }
 
   $('avoidableKm').value=avoidable.toFixed(4);
   $('fuelKm').value=fuel.toFixed(4);
   $('maintenanceKm').value=maintKm.toFixed(4);
   $('depreciationKm').value=depr.toFixed(4);
+
+  if($('setFuelKmDisplay')){
+    $('setFuelKmDisplay').textContent=fuel.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/km';
+  }
 }
 async function saveCloud(){
   if(!currentUser || !supabaseReady || !sb)return false;
@@ -951,6 +1042,8 @@ function updateStats(){
   updateMonthlyReview();
 }
 function loadSettings(){
+  if($('setFuelConsumption')) $('setFuelConsumption').value=$('setFuelConsumption').value || '';
+  if($('setFuelPrice')) $('setFuelPrice').value=$('setFuelPrice').value || '';
   $('setDistance').value=$('distance').value;
   $('setDays').value=$('days').value;
   $('setAnnualKm').value=$('annualKm').value;
@@ -962,10 +1055,36 @@ function loadSettings(){
   $('setParking').value=$('parking').value;
   $('setTicket').value=$('ticket').value;
   $('setGoal').value=$('goal').value;
+  if($('setFuelConsumption') && $('setFuelPrice')){
+    const fc=+$('setFuelConsumption').value||0;
+    const fp=+$('setFuelPrice').value||0;
+    $('fuelSettingsHint').textContent=(fc>0 && fp>0)
+      ? 'Kraftstoffkosten sind hinterlegt.'
+      : 'Für ältere Konten bitte Verbrauch und Kraftstoffpreis einmal ergänzen.';
+  }
   $('setCarCo2Display').textContent=Math.round((+$('co2CarKgKm').value||CO2_CAR_DEFAULT_KG_PER_KM)*1000)+' g/km';
   $('setTrainCo2Display').textContent=Math.round(CO2_TRAIN_KG_PER_KM*1000)+' g/km';
 }
-async function saveSettings(){
+async function saveFuelSettings(){
+  const consumption=Math.max(0,+$('setFuelConsumption').value||0);
+  const price=Math.max(0,+$('setFuelPrice').value||0);
+  if(consumption<=0 || price<=0){
+    $('fuelSettingsHint').textContent='Bitte Verbrauch und Kraftstoffpreis eingeben.';
+    return;
+  }
+
+  const fuel=consumption*price/100;
+  $('fuelKm').value=fuel.toFixed(4);
+
+  // Rebuild the avoidable split while preserving the existing total.
+  repairCostBreakdown();
+
+  $('fuelSettingsHint').textContent=
+    `Gespeichert: ${fuel.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})} €/km`;
+  calc();
+  saveCloud();
+}
+function saveSettings(){
   $('distance').value=$('setDistance').value;
   $('days').value=$('setDays').value;
   $('annualKm').value=$('setAnnualKm').value;
@@ -990,6 +1109,11 @@ function resetData(){
 }
 document.addEventListener('DOMContentLoaded',async()=>{
   $('accountBtn').addEventListener('click',accountMenu);
+  const savedFuelSettings=JSON.parse(localStorage.getItem('pendly-settings-'+(currentUser?.id||'guest'))||'null');
+  if(savedFuelSettings){
+    if($('setFuelConsumption')) $('setFuelConsumption').value=savedFuelSettings.fuelConsumption||'';
+    if($('setFuelPrice')) $('setFuelPrice').value=savedFuelSettings.fuelPrice||'';
+  }
   $('oType').addEventListener('change',updateFuelUI);
   $('fgFile').addEventListener('change',e=>{if(e.target.files[0])importFinancialGuru(e.target.files[0]);});
   $('oTicketMode').addEventListener('change',updateTicketUI);
