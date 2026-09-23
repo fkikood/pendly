@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.5</title>
+<title>Pendly v0.14.6</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -115,7 +115,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.5</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.6</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -1155,14 +1155,22 @@ async function refreshFuelPricesForTrainDays(){
     return;
   }
   $('fuelSettingsHint').textContent='Preise für '+days.length+' Zugtage werden abgerufen …';
-  let ok=0;
+  let ok=0, errors=[];
   for(const day of days){
-    if(await fetchFuelPrice(false,day)) ok++;
+    const success=await fetchFuelPrice(false,day);
+    if(success) ok++;
+    else{
+      const msg=$('fuelSettingsHint').textContent||'Unbekannter Fehler';
+      errors.push(day+': '+msg);
+    }
   }
   calc();
-  $('fuelSettingsHint').textContent=ok===days.length
-    ? 'Alle '+ok+' Zugtage wurden mit neu abgerufenen Kraftstoffpreisen berechnet.'
-    : ok+' von '+days.length+' Zugtagen konnten aktualisiert werden.';
+  if(ok===days.length){
+    $('fuelSettingsHint').textContent='Alle '+ok+' Zugtage wurden mit neu abgerufenen Kraftstoffpreisen berechnet.';
+  }else{
+    const detail=errors[0]||'Unbekannter Fehler';
+    $('fuelSettingsHint').textContent=ok+' von '+days.length+' Zugtagen konnten aktualisiert werden. '+detail;
+  }
 }
 
 async function ensureFuelPriceForToday(){
