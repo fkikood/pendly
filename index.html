@@ -1143,7 +1143,7 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
     if(userAction) $('fuelSettingsHint').textContent='Kraftstoffpreise wurden neu abgerufen.';
     return true;
   }catch(e){
-    if(userAction) $('fuelSettingsHint').textContent=e.message||'Kraftstoffpreis konnte nicht geladen werden.';
+    $('fuelSettingsHint').textContent=e.message||'Kraftstoffpreis konnte nicht geladen werden.';
     return false;
   }
 }
