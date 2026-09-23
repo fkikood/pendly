@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.7</title>
+<title>Pendly v0.14.8</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -115,7 +115,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.7</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.8</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -342,7 +342,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="row"><div><b>Kraftstoffkosten / km</b><small>wird aus den abgerufenen Preisen berechnet</small></div><b id="setFuelKmDisplay">0,000 €/km</b></div>
   <button class="primary" type="button" onclick="refreshFuelPricesForTrainDays()">Preise für meine Zugtage aktualisieren</button>
   <div id="fuelSettingsHint" class="sub" style="margin-top:10px"></div>
-  <p class="sub" style="margin:10px 0 0">Quelle: Nakordoni. Die Preise werden über Supabase sicher abgerufen.</p>
+  <p class="sub" style="margin:10px 0 0">Quelle: Nakordoni. Historische Tage werden über TankPuls/MTS-K nachgeladen. Die Preise werden über Supabase sicher abgerufen.</p>
 </section>
 <h2>Weitere Fixkosten</h2>
 <section class="card">
@@ -1000,15 +1000,22 @@ function openEditor(iso){
   $('dayEditor').style.display='flex';
 }
 function closeEditor(){editingDay=null;$('dayEditor').style.display='none'}
-function setDay(type){
+async function setDay(type){
   if(!editingDay)return;
-  const old=data.events[editingDay];
+  const day=editingDay;
+  const old=data.events[day];
   if(old===type){closeEditor();return}
   if(old==='train')data.train=Math.max(0,data.train-1);
   if(old==='car')data.car=Math.max(0,data.car-1);
-  data.events[editingDay]=type;
+  data.events[day]=type;
   if(type==='train')data.train++; else data.car++;
-  closeEditor();calc();
+  closeEditor();
+  calc();
+  if(type==='train' && !data.fuelPrices?.[day] && day<=localISODate()){
+    $('fuelSettingsHint').textContent='Kraftstoffpreis für '+day+' wird automatisch abgerufen …';
+    await fetchFuelPrice(false,day);
+    calc();
+  }
 }
 function clearDay(){
   if(!editingDay)return;
@@ -1149,12 +1156,19 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
 }
 
 async function refreshFuelPricesForTrainDays(){
-  const days=Object.keys(data.events||{}).filter(d=>data.events[d]==='train').sort();
-  if(!days.length){
+  const today=localISODate();
+  const allDays=Object.keys(data.events||{}).filter(d=>data.events[d]==='train').sort();
+  const days=allDays.filter(d=>d<=today);
+  const future=allDays.length-days.length;
+  if(!allDays.length){
     $('fuelSettingsHint').textContent='Noch keine Zugtage im Kalender eingetragen.';
     return;
   }
-  $('fuelSettingsHint').textContent='Preise für '+days.length+' Zugtage werden abgerufen …';
+  if(!days.length){
+    $('fuelSettingsHint').textContent='Für zukünftige Zugtage wird der Preis automatisch am jeweiligen Tag abgerufen.';
+    return;
+  }
+  $('fuelSettingsHint').textContent='Preise für '+days.length+' vergangene/heutige Zugtage werden abgerufen …';
   let ok=0, errors=[];
   for(const day of days){
     const success=await fetchFuelPrice(false,day);
@@ -1166,7 +1180,7 @@ async function refreshFuelPricesForTrainDays(){
   }
   calc();
   if(ok===days.length){
-    $('fuelSettingsHint').textContent='Alle '+ok+' Zugtage wurden mit neu abgerufenen Kraftstoffpreisen berechnet.';
+    $('fuelSettingsHint').textContent='Alle '+ok+' Zugtage wurden neu abgerufen und berechnet.'+(future?' '+future+' zukünftige Zugtage werden automatisch am jeweiligen Tag aktualisiert.':'');
   }else{
     const detail=errors[0]||'Unbekannter Fehler';
     $('fuelSettingsHint').textContent=ok+' von '+days.length+' Zugtagen konnten aktualisiert werden. '+detail;
