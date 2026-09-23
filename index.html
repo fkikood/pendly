@@ -1102,7 +1102,7 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
     if(sessionError) throw sessionError;
     const accessToken=sessionData?.session?.access_token;
     if(!accessToken) throw new Error('Keine gültige Supabase-Sitzung vorhanden. Bitte neu anmelden.');
-    const r=await fetch(SUPABASE_URL+'/functions/v1/fuel-price',{
+    const r=await fetch(SUPABASE_URL+'/functions/v1/dynamic-worker',{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
