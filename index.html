@@ -1089,7 +1089,7 @@ async function saveFuelSettings(){
 async function fetchFuelPrice(userAction=false){
   const postcode=String($('setFuelPostcode').value||'').trim();
   const type=String($('setFuelType').value||'e5').toLowerCase();
-  if(!/^\\d{5}$/.test(postcode)){
+  if(!/^\d{5}$/.test(postcode)){
     $('fuelSettingsHint').textContent='Bitte eine gültige 5-stellige Pendel-PLZ eingeben.';
     return false;
   }
