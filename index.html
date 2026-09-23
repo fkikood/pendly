@@ -180,7 +180,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <div id="pendlyState" aria-hidden="true" style="display:none">
 <input id="carKm" value="0"><input id="avoidableKm" value="0"><input id="annualKm" value="12500"><input id="fuelKm" value="0"><input id="maintenanceKm" value="0"><input id="depreciationKm" value="0">
 <input id="insurance" value="90"><input id="maintenance" value="70"><input id="tax" value="180"><input id="parking" value="0">
-<input id="ticket" value="0"><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
+<input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
 <div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="account" id="accountBtn">Konto</div></div></header>
@@ -1129,7 +1129,7 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
     };
 
     // Never use an old manually stored price as the source.
-    $('setFuelPrice').value='';
+    if($('setFuelPrice')) $('setFuelPrice').value='';
     $('setFuelLivePrice').textContent=price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l';
     $('fuelPriceSource').textContent='TankPuls · MTS-K · '+day;
     const consumption=Math.max(0,+$('setFuelConsumption').value||0);
