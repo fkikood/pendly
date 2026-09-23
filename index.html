@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.6</title>
+<title>Pendly v0.14.7</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -115,7 +115,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.6</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.7</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -342,7 +342,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="row"><div><b>Kraftstoffkosten / km</b><small>wird aus den abgerufenen Preisen berechnet</small></div><b id="setFuelKmDisplay">0,000 €/km</b></div>
   <button class="primary" type="button" onclick="refreshFuelPricesForTrainDays()">Preise für meine Zugtage aktualisieren</button>
   <div id="fuelSettingsHint" class="sub" style="margin-top:10px"></div>
-  <p class="sub" style="margin:10px 0 0">Quelle: TankPuls · MTS-K. Die Preise werden über Supabase sicher abgerufen.</p>
+  <p class="sub" style="margin:10px 0 0">Quelle: Nakordoni. Die Preise werden über Supabase sicher abgerufen.</p>
 </section>
 <h2>Weitere Fixkosten</h2>
 <section class="card">
@@ -1124,7 +1124,7 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
       price,
       type,
       postcode,
-      source:'TankPuls/MTS-K',
+      source:'Nakordoni',
       updatedAt:new Date().toISOString(),
       historical:day!==localISODate()
     };
@@ -1132,7 +1132,7 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
     // Never use an old manually stored price as the source.
     if($('setFuelPrice')) $('setFuelPrice').value='';
     $('setFuelLivePrice').textContent=price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l';
-    $('fuelPriceSource').textContent='TankPuls · MTS-K · '+day;
+    $('fuelPriceSource').textContent='Nakordoni · '+day;
     const consumption=Math.max(0,+$('setFuelConsumption').value||0);
     if(day===localISODate() && consumption>0) $('fuelKm').value=(consumption*price/100).toFixed(4);
 
