@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.13.0</title>
+<title>Pendly v0.13.1</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -115,7 +115,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.13.0</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.13.1</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -334,7 +334,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 
 <h2>Kraftstoff / Energie</h2>
 <section class="card">
-  <p class="sub" style="margin:0 0 12px">Pendly kann den Kraftstoffpreis automatisch aus aktuellen MTS-K-Daten über Tankerkönig übernehmen. Dafür speicherst du Kraftstoffart und deine Pendel-PLZ.</p>
+  <p class="sub" style="margin:0 0 12px">Pendly kann den Kraftstoffpreis automatisch aus aktuellen MTS-K-Daten über TankPuls abrufen. Dafür speicherst du Kraftstoffart und deine Pendel-PLZ.</p>
   <div class="row"><div><b>Kraftstoff</b><small>was du tankst</small></div><div style="width:145px"><select id="setFuelType"><option value="e5">Super E5</option><option value="e10">Super E10</option><option value="diesel">Diesel</option></select></div></div>
   <div class="row"><div><b>Verbrauch</b><small>Liter pro 100 km</small></div><div style="width:130px"><input id="setFuelConsumption" type="number" step="0.1" min="0" placeholder="6,5"></div></div>
   <div class="row"><div><b>Pendel-PLZ</b><small>für den regionalen Durchschnitt</small></div><div style="width:130px"><input id="setFuelPostcode" inputmode="numeric" maxlength="5" placeholder="46397"></div></div>
