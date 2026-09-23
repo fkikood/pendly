@@ -1166,8 +1166,9 @@ async function refreshFuelPricesForTrainDays(){
 
 async function ensureFuelPriceForToday(){
   const day=localISODate();
-  if(data.fuelPrices?.[day]) return;
-  if(/^\d{5}$/.test(String($('setFuelPostcode').value||''))){ await fetchFuelPrice(false); }
+  if(/^\d{5}$/.test(String($('setFuelPostcode').value||''))){
+    await fetchFuelPrice(false,day);
+  }
 }
 async function saveSettings(){
   $('distance').value=$('setDistance').value;
