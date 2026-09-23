@@ -1088,34 +1088,79 @@ async function saveFuelSettings(){
 
 async function fetchFuelPrice(userAction=false){
   const postcode=String($('setFuelPostcode').value||'').trim();
-  const type=$('setFuelType').value||'e5';
-  if(!/^\d{5}$/.test(postcode)){ $('fuelSettingsHint').textContent='Bitte eine gültige 5-stellige Pendel-PLZ eingeben.'; return; }
+  const type=String($('setFuelType').value||'e5').toLowerCase();
+  if(!/^\\d{5}$/.test(postcode)){
+    $('fuelSettingsHint').textContent='Bitte eine gültige 5-stellige Pendel-PLZ eingeben.';
+    return false;
+  }
+
+  const fuelMap={e5:'E5',e10:'E10',diesel:'Diesel'};
+  const fuel=fuelMap[type]||'E5';
   $('fuelSettingsHint').textContent='Regionalen Kraftstoffpreis wird abgerufen …';
+
   try{
-    const geo=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&country=Deutschland&postalcode='+encodeURIComponent(postcode)+'&limit=1',{headers:{'Accept':'application/json'}});
-    if(!geo.ok)throw new Error('PLZ konnte nicht aufgelöst werden.');
-    const places=await geo.json();
-    if(!places.length)throw new Error('PLZ wurde nicht gefunden.');
-    const lat=Number(places[0].lat),lng=Number(places[0].lon);
-    const url='https://prtdkebrtgwbbwvhdfea.supabase.co/functions/v1/fuel-price';
-    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng,type})});
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
+    const url='https://api.tankpuls.de/v1/regions/'+encodeURIComponent(postcode)+'/summary?fuel='+encodeURIComponent(fuel);
+    const r=await fetch(url,{
+      method:'GET',
+      headers:{'Accept':'application/json'},
+      signal:controller.signal
+    });
+    clearTimeout(timeout);
+
+    if(!r.ok){
+      if(r.status===429) throw new Error('Zu viele Preisabfragen. Bitte später erneut versuchen.');
+      throw new Error('TankPuls konnte den Kraftstoffpreis nicht laden (HTTP '+r.status+').');
+    }
+
     const result=await r.json();
-    if(!r.ok||!result.ok)throw new Error(result.message||'Kraftstoffpreis konnte nicht abgerufen werden.');
-    const price=Number(result.average);
-    if(!Number.isFinite(price)||price<=0)throw new Error('Kein gültiger Durchschnittspreis erhalten.');
+    const price=Number(
+      result?.median ??
+      result?.region?.median ??
+      result?.data?.median ??
+      result?.data?.region?.median
+    );
+
+    if(!Number.isFinite(price)||price<=0){
+      throw new Error('TankPuls hat keinen gültigen Regionalpreis für diese PLZ geliefert.');
+    }
+
     $('setFuelPrice').value=price.toFixed(3);
-    $('setFuelLivePrice').textContent=price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l';
-    $('fuelPriceSource').textContent=`MTS-K / Tankerkönig · ${result.count||0} Tankstellen`;
-    $('fuelSettingsHint').textContent=`Aktueller Regionaldurchschnitt: ${price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})} €/l`;
+    $('setFuelLivePrice').textContent=price.toLocaleString('de-DE',{
+      minimumFractionDigits:3,
+      maximumFractionDigits:3
+    })+' €/l';
+    $('fuelPriceSource').textContent='TankPuls · MTS-K';
+    $('fuelSettingsHint').textContent=
+      'Regionaler '+fuel+'-Preis: '+
+      price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l';
+
     const consumption=Math.max(0,+$('setFuelConsumption').value||0);
-    if(consumption>0){ $('fuelKm').value=(consumption*price/100).toFixed(4); }
+    if(consumption>0) $('fuelKm').value=(consumption*price/100).toFixed(4);
+
     data.fuelPriceUpdatedAt=new Date().toISOString();
     const day=localISODate();
     data.fuelPrices=data.fuelPrices||{};
-    data.fuelPrices[day]={price,type,postcode,source:'MTS-K/Tankerkönig',updatedAt:data.fuelPriceUpdatedAt};
-    repairCostBreakdown(); calc(); loadSettings(); await saveCloud();
+    data.fuelPrices[day]={
+      price,
+      type,
+      postcode,
+      source:'TankPuls/MTS-K',
+      updatedAt:data.fuelPriceUpdatedAt
+    };
+
+    repairCostBreakdown();
+    calc();
+    loadSettings();
+    await saveCloud();
+    return true;
   }catch(e){
-    $('fuelSettingsHint').textContent=e.message||'Kraftstoffpreis konnte nicht abgerufen werden.';
+    const message=e?.name==='AbortError'
+      ? 'Die Preisabfrage hat zu lange gedauert. Bitte später erneut versuchen.'
+      : (e.message||'Kraftstoffpreis konnte nicht abgerufen werden.');
+    $('fuelSettingsHint').textContent=message;
+    return false;
   }
 }
 
