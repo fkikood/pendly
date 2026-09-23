@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.13.1</title>
+<title>Pendly v0.14.0</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -115,7 +115,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.13.1</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.0</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -334,16 +334,15 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 
 <h2>Kraftstoff / Energie</h2>
 <section class="card">
-  <p class="sub" style="margin:0 0 12px">Pendly kann den Kraftstoffpreis automatisch aus aktuellen MTS-K-Daten über TankPuls abrufen. Dafür speicherst du Kraftstoffart und deine Pendel-PLZ.</p>
+  <p class="sub" style="margin:0 0 12px">Pendly verwendet für Zugtage neu abgerufene Kraftstoffpreise. Bereits gespeicherte alte Kraftstoffpreise werden nicht als Quelle verwendet.</p>
   <div class="row"><div><b>Kraftstoff</b><small>was du tankst</small></div><div style="width:145px"><select id="setFuelType"><option value="e5">Super E5</option><option value="e10">Super E10</option><option value="diesel">Diesel</option></select></div></div>
   <div class="row"><div><b>Verbrauch</b><small>Liter pro 100 km</small></div><div style="width:130px"><input id="setFuelConsumption" type="number" step="0.1" min="0" placeholder="6,5"></div></div>
-  <div class="row"><div><b>Pendel-PLZ</b><small>für den regionalen Durchschnitt</small></div><div style="width:130px"><input id="setFuelPostcode" inputmode="numeric" maxlength="5" placeholder="46397"></div></div>
-  <div class="row"><div><b>Kraftstoffpreis</b><small>Fallback, falls kein Online-Preis verfügbar ist</small></div><div style="width:130px"><input id="setFuelPrice" type="number" step="0.01" min="0" placeholder="1,75"></div></div>
-  <div class="row"><div><b>Aktueller Regionalpreis</b><small id="fuelPriceSource">noch nicht abgerufen</small></div><b id="setFuelLivePrice">–</b></div>
-  <div class="row"><div><b>Kraftstoffkosten / km</b><small>wird aus dem verwendeten Preis berechnet</small></div><b id="setFuelKmDisplay">0,000 €/km</b></div>
-  <button class="primary" type="button" onclick="fetchFuelPrice(true)">Aktuellen Preis abrufen</button>
+  <div class="row"><div><b>Pendel-PLZ</b><small>für den regionalen Kraftstoffpreis</small></div><div style="width:130px"><input id="setFuelPostcode" inputmode="numeric" maxlength="5" placeholder="46397"></div></div>
+  <div class="row"><div><b>Aktueller Preis</b><small id="fuelPriceSource">wird für Zugtage geladen</small></div><b id="setFuelLivePrice">–</b></div>
+  <div class="row"><div><b>Kraftstoffkosten / km</b><small>wird aus den abgerufenen Preisen berechnet</small></div><b id="setFuelKmDisplay">0,000 €/km</b></div>
+  <button class="primary" type="button" onclick="refreshFuelPricesForTrainDays()">Preise für meine Zugtage aktualisieren</button>
   <div id="fuelSettingsHint" class="sub" style="margin-top:10px"></div>
-  <p class="sub" style="margin:10px 0 0">Quelle: MTS-K-Daten über TankPuls. Der Abruf erfolgt nur auf deine Aktion hin.</p>
+  <p class="sub" style="margin:10px 0 0">Quelle: TankPuls · MTS-K. Die Preise werden über Supabase sicher abgerufen.</p>
 </section>
 <h2>Weitere Fixkosten</h2>
 <section class="card">
@@ -1086,82 +1085,83 @@ async function saveFuelSettings(){
   calc();
 }
 
-async function fetchFuelPrice(userAction=false){
+async function fetchFuelPrice(userAction=false, targetDay=null){
   const postcode=String($('setFuelPostcode').value||'').trim();
   const type=String($('setFuelType').value||'e5').toLowerCase();
+  const day=targetDay||localISODate();
+
   if(!/^\d{5}$/.test(postcode)){
-    $('fuelSettingsHint').textContent='Bitte eine gültige 5-stellige Pendel-PLZ eingeben.';
+    $('fuelSettingsHint').textContent='Bitte zuerst eine gültige 5-stellige Pendel-PLZ eingeben.';
     return false;
   }
 
   const fuelMap={e5:'E5',e10:'E10',diesel:'Diesel'};
   const fuel=fuelMap[type]||'E5';
-  $('fuelSettingsHint').textContent='Regionalen Kraftstoffpreis wird abgerufen …';
+  if(userAction) $('fuelSettingsHint').textContent='Kraftstoffpreise der Zugtage werden aktualisiert …';
 
   try{
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),10000);
-    const url='https://api.tankpuls.de/v1/regions/'+encodeURIComponent(postcode)+'/summary?fuel='+encodeURIComponent(fuel);
-    const r=await fetch(url,{
-      method:'GET',
-      headers:{'Accept':'application/json'},
-      signal:controller.signal
+    if(!sb) throw new Error('Supabase ist nicht verbunden.');
+    const r=await fetch(SUPABASE_URL+'/functions/v1/fuel-price',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SUPABASE_PUBLISHABLE_KEY,
+        'Authorization':'Bearer '+SUPABASE_PUBLISHABLE_KEY
+      },
+      body:JSON.stringify({postcode,type:fuel,date:day})
     });
-    clearTimeout(timeout);
-
-    if(!r.ok){
-      if(r.status===429) throw new Error('Zu viele Preisabfragen. Bitte später erneut versuchen.');
-      throw new Error('TankPuls konnte den Kraftstoffpreis nicht laden (HTTP '+r.status+').');
+    const result=await r.json().catch(()=>({}));
+    if(!r.ok||!result.ok){
+      throw new Error(result.message||'Kraftstoffpreis konnte nicht geladen werden.');
     }
 
-    const result=await r.json();
-    const price=Number(
-      result?.median ??
-      result?.region?.median ??
-      result?.data?.median ??
-      result?.data?.region?.median
-    );
+    const price=Number(result.average??result.median??result.price);
+    if(!Number.isFinite(price)||price<=0) throw new Error('Kein gültiger Kraftstoffpreis erhalten.');
 
-    if(!Number.isFinite(price)||price<=0){
-      throw new Error('TankPuls hat keinen gültigen Regionalpreis für diese PLZ geliefert.');
-    }
-
-    $('setFuelPrice').value=price.toFixed(3);
-    $('setFuelLivePrice').textContent=price.toLocaleString('de-DE',{
-      minimumFractionDigits:3,
-      maximumFractionDigits:3
-    })+' €/l';
-    $('fuelPriceSource').textContent='TankPuls · MTS-K';
-    $('fuelSettingsHint').textContent=
-      'Regionaler '+fuel+'-Preis: '+
-      price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l';
-
-    const consumption=Math.max(0,+$('setFuelConsumption').value||0);
-    if(consumption>0) $('fuelKm').value=(consumption*price/100).toFixed(4);
-
-    data.fuelPriceUpdatedAt=new Date().toISOString();
-    const day=localISODate();
     data.fuelPrices=data.fuelPrices||{};
     data.fuelPrices[day]={
       price,
       type,
       postcode,
       source:'TankPuls/MTS-K',
-      updatedAt:data.fuelPriceUpdatedAt
+      updatedAt:new Date().toISOString(),
+      historical:day!==localISODate()
     };
+
+    // Never use an old manually stored price as the source.
+    $('setFuelPrice').value='';
+    $('setFuelLivePrice').textContent=price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l';
+    $('fuelPriceSource').textContent='TankPuls · MTS-K · '+day;
+    const consumption=Math.max(0,+$('setFuelConsumption').value||0);
+    if(day===localISODate() && consumption>0) $('fuelKm').value=(consumption*price/100).toFixed(4);
 
     repairCostBreakdown();
     calc();
     loadSettings();
     await saveCloud();
+    if(userAction) $('fuelSettingsHint').textContent='Kraftstoffpreise wurden neu abgerufen.';
     return true;
   }catch(e){
-    const message=e?.name==='AbortError'
-      ? 'Die Preisabfrage hat zu lange gedauert. Bitte später erneut versuchen.'
-      : (e.message||'Kraftstoffpreis konnte nicht abgerufen werden.');
-    $('fuelSettingsHint').textContent=message;
+    if(userAction) $('fuelSettingsHint').textContent=e.message||'Kraftstoffpreis konnte nicht geladen werden.';
     return false;
   }
+}
+
+async function refreshFuelPricesForTrainDays(){
+  const days=Object.keys(data.events||{}).filter(d=>data.events[d]==='train').sort();
+  if(!days.length){
+    $('fuelSettingsHint').textContent='Noch keine Zugtage im Kalender eingetragen.';
+    return;
+  }
+  $('fuelSettingsHint').textContent='Preise für '+days.length+' Zugtage werden abgerufen …';
+  let ok=0;
+  for(const day of days){
+    if(await fetchFuelPrice(false,day)) ok++;
+  }
+  calc();
+  $('fuelSettingsHint').textContent=ok===days.length
+    ? 'Alle '+ok+' Zugtage wurden mit neu abgerufenen Kraftstoffpreisen berechnet.'
+    : ok+' von '+days.length+' Zugtagen konnten aktualisiert werden.';
 }
 
 async function ensureFuelPriceForToday(){
