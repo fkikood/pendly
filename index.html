@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.11</title>
+<title>Pendly v0.14.12</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -119,7 +119,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.11</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.12</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -187,7 +187,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.11</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.12</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -342,6 +342,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="row"><div><b>Kraftstoff</b><small>was du tankst</small></div><div style="width:145px"><select id="setFuelType"><option value="e5">Super E5</option><option value="e10">Super E10</option><option value="diesel">Diesel</option></select></div></div>
   <div class="row"><div><b>Verbrauch</b><small>Liter pro 100 km</small></div><div style="width:130px"><input id="setFuelConsumption" type="number" step="0.1" min="0" placeholder="6,5"></div></div>
   <div class="row"><div><b>Pendel-PLZ</b><small>für den regionalen Kraftstoffpreis</small></div><div style="width:130px"><input id="setFuelPostcode" inputmode="numeric" maxlength="5" placeholder="46397"></div></div>
+  <div class="row"><div><b>Fallback-Preis</b><small>wird genutzt, wenn kein Tagespreis verfügbar ist</small></div><div style="width:130px"><input id="setFuelFallbackPrice" type="number" step="0.001" min="0" placeholder="1,75"></div></div>
   <div class="row"><div><b>Aktueller Preis</b><small id="fuelPriceSource">wird für Zugtage geladen</small></div><b id="setFuelLivePrice">–</b></div>
   <div class="row"><div><b>Kraftstoffkosten / km</b><small>wird aus den abgerufenen Preisen berechnet</small></div><b id="setFuelKmDisplay">0,000 €/km</b></div>
   <button class="primary" type="button" onclick="refreshFuelPricesForTrainDays()">Preise für meine Zugtage aktualisieren</button>
@@ -562,7 +563,7 @@ async function loadUserData(){
 function getSettings(){
   return {
     carKm:+($('carKm')?.value||0), avoidableKm:+($('avoidableKm')?.value||0), annualKm:+($('annualKm')?.value||0),
-    fuelKm:+($('fuelKm')?.value||0), fuelConsumption:+($('setFuelConsumption')?.value||0), fuelPrice:+($('setFuelPrice')?.value||0), fuelType:$('setFuelType')?.value||'e5', fuelPostcode:$('setFuelPostcode')?.value||'', fuelPriceUpdatedAt:data.fuelPriceUpdatedAt||null, maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0), carPurchasePrice:+($('carPurchasePrice')?.value||0), carAge:+($('carAge')?.value||0),
+    fuelKm:+($('fuelKm')?.value||0), fuelConsumption:+($('setFuelConsumption')?.value||0), fuelPrice:+($('setFuelFallbackPrice')?.value||$('setFuelPrice')?.value||0), fuelType:$('setFuelType')?.value||'e5', fuelPostcode:$('setFuelPostcode')?.value||'', fuelPriceUpdatedAt:data.fuelPriceUpdatedAt||null, maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0), carPurchasePrice:+($('carPurchasePrice')?.value||0), carAge:+($('carAge')?.value||0),
     insurance:+($('insurance')?.value||0), maintenance:+($('maintenance')?.value||0),
     tax:+($('tax')?.value||0), parking:+($('parking')?.value||0),
     ticket:+($('ticket')?.value||0), days:+($('days')?.value||0),
@@ -1130,6 +1131,7 @@ function updateStats(){
 function loadSettings(){
   if($('setFuelConsumption')) $('setFuelConsumption').value=$('setFuelConsumption').value || '';
   if($('setFuelPrice')) $('setFuelPrice').value=$('setFuelPrice').value || '';
+  if($('setFuelFallbackPrice')) $('setFuelFallbackPrice').value=$('setFuelFallbackPrice').value || $('setFuelPrice').value || '';
   if($('setFuelType')) $('setFuelType').value=$('setFuelType').value || 'e5';
   if($('setFuelPostcode')) $('setFuelPostcode').value=$('setFuelPostcode').value || '';
   $('setDistance').value=$('distance').value;
@@ -1147,16 +1149,17 @@ function loadSettings(){
     const fc=+$('setFuelConsumption').value||0;
     const fp=+$('setFuelPrice').value||0;
     $('fuelSettingsHint').textContent=(fc>0 && fp>0)
-      ? 'Kraftstoffkosten sind hinterlegt.'
-      : 'Für ältere Konten bitte Verbrauch und Kraftstoffpreis einmal ergänzen.';
+      ? 'Kraftstoffkosten sind hinterlegt. Der Fallback-Preis wird verwendet, wenn kein Tagespreis verfügbar ist.'
+      : 'Bitte Verbrauch und einen Fallback-Preis ergänzen. So bleibt die Ersparnis auch bei einem API-Ausfall sichtbar.';
   }
   $('setCarCo2Display').textContent=Math.round((+$('co2CarKgKm').value||CO2_CAR_DEFAULT_KG_PER_KM)*1000)+' g/km';
   $('setTrainCo2Display').textContent=Math.round(CO2_TRAIN_KG_PER_KM*1000)+' g/km';
 }
 async function saveFuelSettings(){
   const consumption=Math.max(0,+$('setFuelConsumption').value||0);
-  const price=Math.max(0,+$('setFuelPrice').value||0);
+  const price=Math.max(0,+$('setFuelFallbackPrice').value||0);
   if(consumption<=0){$('fuelSettingsHint').textContent='Bitte deinen Verbrauch eingeben.';return;}
+  $('setFuelPrice').value=price>0?price:'';
   const fuel=price>0?consumption*price/100:(+$('fuelKm').value||0);
   if(fuel>0)$('fuelKm').value=fuel.toFixed(4);
   repairCostBreakdown();
@@ -1213,8 +1216,7 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
       historical:day!==today
     };
 
-    // Never use an old manually stored price as the source.
-    if($('setFuelPrice')) $('setFuelPrice').value='';
+    // Keep the manual fallback price. It is only used when a daily price is unavailable.
 
     if(day===today){
       $('setFuelLivePrice').textContent=price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l';
@@ -1274,6 +1276,7 @@ async function ensureFuelPriceForToday(){
   }
 }
 async function saveSettings(){
+  if($('setFuelFallbackPrice') && $('setFuelPrice')) $('setFuelPrice').value=$('setFuelFallbackPrice').value;
   $('distance').value=$('setDistance').value;
   $('days').value=$('setDays').value;
   $('annualKm').value=$('setAnnualKm').value;
@@ -1304,6 +1307,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     if(savedFuelSettings){
       if($('setFuelConsumption')) $('setFuelConsumption').value=savedFuelSettings.fuelConsumption||'';
       if($('setFuelPrice')) $('setFuelPrice').value=savedFuelSettings.fuelPrice||'';
+      if($('setFuelFallbackPrice')) $('setFuelFallbackPrice').value=savedFuelSettings.fuelPrice||'';
       if($('setFuelType')) $('setFuelType').value=savedFuelSettings.fuelType||'e5';
       if($('setFuelPostcode')) $('setFuelPostcode').value=savedFuelSettings.fuelPostcode||'';
     }
