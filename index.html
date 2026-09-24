@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.10</title>
+<title>Pendly v0.14.11</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -104,7 +104,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 .authbox h1{font-size:38px;letter-spacing:-1.8px;margin:0 0 8px}.authbox p{color:#6e6e73;line-height:1.45}
 .authswitch{display:flex;gap:8px;background:#f5f5f7;padding:5px;border-radius:14px;margin:20px 0}
 .authswitch button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;font-size:15px}.authswitch .active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);font-weight:600}
-.authmsg{font-size:14px;color:#6e6e73;min-height:20px;margin-top:12px}.account{font-size:13px;color:#6e6e73;cursor:pointer}
+.authmsg{font-size:14px;color:#6e6e73;min-height:20px;margin-top:12px}.account{font-size:13px;color:#6e6e73;cursor:pointer}\n.savingCard{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(245,248,255,.92));border:1px solid rgba(0,122,255,.08);box-shadow:0 12px 38px rgba(0,0,0,.07)}\n.savingCard .saving{font-size:58px;margin-bottom:12px}\n.savingMessage{font-size:14px;color:#3a3a3c;margin-top:-4px;margin-bottom:16px}\n.savingGoal{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:#6e6e73;margin-top:14px}\n.savingGoalBar{height:5px;background:#e5e5ea;border-radius:99px;overflow:hidden;margin-top:7px}.savingGoalFill{height:100%;width:0;background:#007aff;border-radius:99px;transition:width .3s ease}\n.appVersion{font-size:11px;color:#8e8e93;font-weight:500}\n.accountModal{position:fixed;inset:0;background:rgba(245,245,247,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:40;display:none;align-items:flex-end;justify-content:center;padding:18px}.accountModal.open{display:flex}.accountSheet{width:min(520px,100%);background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.8);border-radius:28px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.16)}.accountSheet h2{margin:0 0 6px}.accountSheet .field{margin:14px 0}.accountActions{display:grid;gap:10px;margin-top:16px}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -115,7 +115,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.10</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.11</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -178,7 +178,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </div>
 </div></div>
 <div id="pendlyState" aria-hidden="true" style="display:none">
-<input id="carKm" value="0"><input id="avoidableKm" value="0"><input id="annualKm" value="12500"><input id="fuelKm" value="0"><input id="maintenanceKm" value="0"><input id="depreciationKm" value="0">
+<input id="carKm" value="0"><input id="carPurchasePrice" value="0"><input id="carAge" value="0"><input id="avoidableKm" value="0"><input id="annualKm" value="12500"><input id="fuelKm" value="0"><input id="maintenanceKm" value="0"><input id="depreciationKm" value="0">
 <input id="insurance" value="90"><input id="maintenance" value="70"><input id="tax" value="180"><input id="parking" value="0">
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
@@ -506,7 +506,7 @@ async function loadUserData(){
 function getSettings(){
   return {
     carKm:+($('carKm')?.value||0), avoidableKm:+($('avoidableKm')?.value||0), annualKm:+($('annualKm')?.value||0),
-    fuelKm:+($('fuelKm')?.value||0), fuelConsumption:+($('setFuelConsumption')?.value||0), fuelPrice:+($('setFuelPrice')?.value||0), fuelType:$('setFuelType')?.value||'e5', fuelPostcode:$('setFuelPostcode')?.value||'', fuelPriceUpdatedAt:data.fuelPriceUpdatedAt||null, maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0),
+    fuelKm:+($('fuelKm')?.value||0), fuelConsumption:+($('setFuelConsumption')?.value||0), fuelPrice:+($('setFuelPrice')?.value||0), fuelType:$('setFuelType')?.value||'e5', fuelPostcode:$('setFuelPostcode')?.value||'', fuelPriceUpdatedAt:data.fuelPriceUpdatedAt||null, maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0), carPurchasePrice:+($('carPurchasePrice')?.value||0), carAge:+($('carAge')?.value||0),
     insurance:+($('insurance')?.value||0), maintenance:+($('maintenance')?.value||0),
     tax:+($('tax')?.value||0), parking:+($('parking')?.value||0),
     ticket:+($('ticket')?.value||0), days:+($('days')?.value||0),
@@ -544,7 +544,7 @@ function repairCostBreakdown(){
   let avoidable=Math.max(0,+$('avoidableKm').value||0);
   let fuel=Math.max(0,+$('fuelKm').value||0);
   let maintKm=Math.max(0,+$('maintenanceKm').value||0);
-  let depr=Math.max(0,+$('depreciationKm').value||0);
+  let depr=Math.max(0,+$('depreciationKm').value||0);\n\n  // Transparent depreciation model: 85% of the purchase price is spread over\n  // an assumed 200,000 km useful life. This avoids the old model producing\n  // implausibly high per-km values for small profiles.\n  const purchasePrice=Math.max(0,+$('carPurchasePrice').value||0);\n  if(purchasePrice>0){\n    depr=(purchasePrice*0.85)/200000;\n  }else if(depr>0.25){\n    // Repair older profiles that contain the previous erroneous depreciation.\n    depr=0.10;\n  }
 
   // Recover the fuel component for older profiles when the user has entered
   // consumption and fuel price in the settings.
@@ -649,7 +649,7 @@ function showResult(){
   const maint=(+$('oMaintenance').value||0)*12/annual;
   const tax=(+$('oTax').value||0)/annual;
   const parking=(+$('oParking').value||0)*12/annual;
-  const depreciation=Math.max(0,price*(0.55+Math.min(age,10)*0.015))/Math.max(100000,annual*8);
+  // Pendly uses a deliberately simple, transparent depreciation estimate:\n  // 85% of the purchase price over 200,000 km. The remaining 15% represents\n  // a conservative residual value. Real depreciation depends on model, age,\n  // mileage and market value and is therefore only an estimate here.\n  const depreciation=(price*0.85)/200000;
 
   const totalOwnershipKmCost=energy+insurance+maint+tax+parking+depreciation;
 
@@ -678,7 +678,7 @@ async function finishOnboarding(){
       alert('Die Autokosten konnten noch nicht berechnet werden.');
       return;
     }
-    $('carKm').value=cost.toFixed(3);
+    $('carKm').value=cost.toFixed(3);\n    $('carPurchasePrice').value=(+$('oPrice').value||0).toFixed(2);\n    $('carAge').value=(+$('oAge').value||0).toFixed(1);
     if($('avoidableKm')) $('avoidableKm').value=Number(window.onboardingAvoidableKmCost||0).toFixed(3);
     if($('annualKm')) $('annualKm').value=+$('oAnnual').value||12500;
     if($('fuelKm')) $('fuelKm').value=Number(window.onboardingFuelKm||0).toFixed(4);
