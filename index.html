@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.10</title>
+<title>Pendly v0.14.11</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -115,7 +115,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.10</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.11</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -178,12 +178,12 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </div>
 </div></div>
 <div id="pendlyState" aria-hidden="true" style="display:none">
-<input id="carKm" value="0"><input id="avoidableKm" value="0"><input id="annualKm" value="12500"><input id="fuelKm" value="0"><input id="maintenanceKm" value="0"><input id="depreciationKm" value="0">
+<input id="carKm" value="0"><input id="carPurchasePrice" value="0"><input id="carAge" value="0"><input id="avoidableKm" value="0"><input id="annualKm" value="12500"><input id="fuelKm" value="0"><input id="maintenanceKm" value="0"><input id="depreciationKm" value="0">
 <input id="insurance" value="90"><input id="maintenance" value="70"><input id="tax" value="180"><input id="parking" value="0">
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.11</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -212,7 +212,6 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <div class="row"><div>⛽ Kraftstoff / Energie<small>entfällt bei vermiedenen Kilometern</small></div><b id="breakFuel">—</b></div>
 <div class="row"><div>🔧 Wartung & Reifen<small>pauschal kilometerabhängig</small></div><b id="breakMaintenance">—</b></div>
 <div class="row"><div>📉 Wertverlust<small>pauschaler Anteil pro Kilometer</small></div><b id="breakDepreciation">—</b></div>
-<div class="row"><div>🏠 Versicherung, Steuer & Stellplatz<small>laufen auch ohne Fahrt weiter</small></div><b id="breakFixed">0,00 €</b></div>
 <div class="row" style="border-top:1px solid #e5e5ea;padding-top:12px"><div><b>Vermeidbare Autokosten</b><small>vor Abzug deines Zugtickets</small></div><b id="breakAvoidable">—</b></div>
 <div class="row"><div><b>Zugticket</b><small>dein eigener Anteil</small></div><b id="breakTicket">—</b></div>
 <div class="row"><div><b>Netto-Ersparnis</b><small>das bleibt dir tatsächlich</small></div><b id="breakNet">—</b></div>
@@ -506,7 +505,7 @@ async function loadUserData(){
 function getSettings(){
   return {
     carKm:+($('carKm')?.value||0), avoidableKm:+($('avoidableKm')?.value||0), annualKm:+($('annualKm')?.value||0),
-    fuelKm:+($('fuelKm')?.value||0), fuelConsumption:+($('setFuelConsumption')?.value||0), fuelPrice:+($('setFuelPrice')?.value||0), fuelType:$('setFuelType')?.value||'e5', fuelPostcode:$('setFuelPostcode')?.value||'', fuelPriceUpdatedAt:data.fuelPriceUpdatedAt||null, maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0),
+    fuelKm:+($('fuelKm')?.value||0), fuelConsumption:+($('setFuelConsumption')?.value||0), fuelPrice:+($('setFuelPrice')?.value||0), fuelType:$('setFuelType')?.value||'e5', fuelPostcode:$('setFuelPostcode')?.value||'', fuelPriceUpdatedAt:data.fuelPriceUpdatedAt||null, maintenanceKm:+($('maintenanceKm')?.value||0), depreciationKm:+($('depreciationKm')?.value||0), carPurchasePrice:+($('carPurchasePrice')?.value||0), carAge:+($('carAge')?.value||0),
     insurance:+($('insurance')?.value||0), maintenance:+($('maintenance')?.value||0),
     tax:+($('tax')?.value||0), parking:+($('parking')?.value||0),
     ticket:+($('ticket')?.value||0), days:+($('days')?.value||0),
@@ -545,6 +544,10 @@ function repairCostBreakdown(){
   let fuel=Math.max(0,+$('fuelKm').value||0);
   let maintKm=Math.max(0,+$('maintenanceKm').value||0);
   let depr=Math.max(0,+$('depreciationKm').value||0);
+  const purchasePrice=Math.max(0,+$('carPurchasePrice').value||0);
+  if(purchasePrice>0){
+    depr=(purchasePrice*0.85)/200000;
+  }
 
   // Recover the fuel component for older profiles when the user has entered
   // consumption and fuel price in the settings.
@@ -649,7 +652,7 @@ function showResult(){
   const maint=(+$('oMaintenance').value||0)*12/annual;
   const tax=(+$('oTax').value||0)/annual;
   const parking=(+$('oParking').value||0)*12/annual;
-  const depreciation=Math.max(0,price*(0.55+Math.min(age,10)*0.015))/Math.max(100000,annual*8);
+  const depreciation=(price*0.85)/200000;
 
   const totalOwnershipKmCost=energy+insurance+maint+tax+parking+depreciation;
 
@@ -679,6 +682,8 @@ async function finishOnboarding(){
       return;
     }
     $('carKm').value=cost.toFixed(3);
+    $('carPurchasePrice').value=(+$('oPrice').value||0).toFixed(2);
+    $('carAge').value=(+$('oAge').value||0).toFixed(1);
     if($('avoidableKm')) $('avoidableKm').value=Number(window.onboardingAvoidableKmCost||0).toFixed(3);
     if($('annualKm')) $('annualKm').value=+$('oAnnual').value||12500;
     if($('fuelKm')) $('fuelKm').value=Number(window.onboardingFuelKm||0).toFixed(4);
