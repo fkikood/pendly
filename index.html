@@ -379,7 +379,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 </div>
 </div>
-<div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
+<div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
   <button class="active" type="button" onclick="showTab('overview',this)">
     <span class="navIcon">⌂</span><span class="navLabel">Übersicht</span>
   </button>
@@ -495,13 +495,22 @@ async function saveProfile(){
 }
 async function changePassword(){
   if(!currentUser||!sb)return;
+  const currentPassword=$('profileCurrentPassword').value;
   const password=$('profileNewPassword').value;
-  if(password.length<6){$('profileHint').textContent='Das Passwort muss mindestens 6 Zeichen haben.';return;}
+  const repeat=$('profileNewPasswordRepeat').value;
+  if(!currentPassword){$('profileHint').textContent='Bitte dein aktuelles Passwort eingeben.';return;}
+  if(password.length<6){$('profileHint').textContent='Das neue Passwort muss mindestens 6 Zeichen haben.';return;}
+  if(password!==repeat){$('profileHint').textContent='Die neuen Passwörter stimmen nicht überein.';return;}
+  if(password===currentPassword){$('profileHint').textContent='Das neue Passwort sollte sich vom aktuellen unterscheiden.';return;}
   $('profileHint').textContent='Passwort wird geändert …';
   try{
+    const {error:verifyError}=await sb.auth.signInWithPassword({email:currentUser.email,password:currentPassword});
+    if(verifyError)throw new Error('Das aktuelle Passwort ist nicht korrekt.');
     const {error}=await sb.auth.updateUser({password});
     if(error)throw error;
+    $('profileCurrentPassword').value='';
     $('profileNewPassword').value='';
+    $('profileNewPasswordRepeat').value='';
     $('profileHint').textContent='Passwort erfolgreich geändert.';
   }catch(e){$('profileHint').textContent=e.message||'Passwort konnte nicht geändert werden.';}
 }
