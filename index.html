@@ -934,8 +934,6 @@ function calc(){
   const avoidableTrip=avoidableKm*dist*2;
   const fullTrip=fullKm*dist*2+fixedPerDay;
   const train=ticket/days;
-  const saved=avoidableTrip*data.train;
-  const net=Math.max(0,saved-ticket);
 
   // Component values are persisted with the onboarding profile. For older
   // profiles, derive missing components from the total avoidable cost so the
@@ -945,17 +943,27 @@ function calc(){
   const depreciationKm=+$('depreciationKm').value||Math.max(0,avoidableKm-fuelKm-maintenanceKm);
   const factor=dist*2*data.train;
   const fuelType=$('setFuelType')?.value||'e5';
+  const fallbackFuelPrice=Math.max(0,+$('setFuelFallbackPrice')?.value||+$('setFuelPrice').value||0);
+  const fuelConsumption=Math.max(0,+$('setFuelConsumption').value||0);
   const fuelDays=Object.entries(data.events||{}).filter(([day,type])=>type==='train');
   let breakFuel=0;
+  let fuelPriceDays=0;
   for(const [day] of fuelDays){
     const fp=data.fuelPrices?.[day];
-    const price=fp&&fp.type===fuelType?Number(fp.price):Math.max(0,+$('setFuelPrice').value||0);
-    breakFuel += dist*2*(+$('setFuelConsumption').value||0)*price/100;
+    const price=fp&&fp.type===fuelType?Number(fp.price):fallbackFuelPrice;
+    if(price>0 && fuelConsumption>0){
+      breakFuel += dist*2*fuelConsumption*price/100;
+      fuelPriceDays++;
+    }else{
+      breakFuel += dist*2*fuelKm;
+    }
   }
   const breakMaintenance=maintenanceKm*factor;
   const breakDepreciation=depreciationKm*factor;
   const dynamicAvoidable=breakFuel+breakMaintenance+breakDepreciation;
-  const dynamicSaved=dynamicAvoidable;
+  const dynamicSaved=(fuelPriceDays>0||breakFuel>0)?dynamicAvoidable:avoidableTrip*data.train;
+  const saved=dynamicSaved;
+  const net=Math.max(0,saved-ticket);
 
   $('autoCost').textContent=eur(fullTrip);
   $('trainCost').textContent=eur(train);
