@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.15</title>
+<title>Pendly v0.14.16</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -13,7 +13,7 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 .logo{font-size:29px;font-weight:700;letter-spacing:-1px}.month{font-size:14px;color:#6e6e73}
 .card{background:rgba(255,255,255,.86);border:1px solid rgba(0,0,0,.06);border-radius:26px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
 .savingCard{background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(245,248,255,.96));border:1px solid rgba(0,122,255,.09);box-shadow:0 12px 38px rgba(0,0,0,.07)}
-.savingCard .saving{font-size:58px;margin-bottom:10px}.savingSecondary{display:flex;align-items:baseline;gap:7px;padding-top:12px;margin-bottom:2px;border-top:1px solid rgba(0,0,0,.07);font-size:13px;color:#6e6e73}.savingSecondary b{font-size:18px;color:#3a3a3c}.savingMessage{font-size:14px;color:#3a3a3c;margin-top:-2px;margin-bottom:16px}.savingGoal{font-size:12px;color:#6e6e73;margin-top:15px}.savingGoalTop{display:flex;justify-content:space-between;gap:10px}.savingGoalBar{height:5px;background:#e5e5ea;border-radius:99px;overflow:hidden;margin-top:7px}.savingGoalFill{height:100%;width:0;background:#007aff;border-radius:99px;transition:width .3s ease}
+.appVersion{font-size:10px;font-weight:400;color:#8e8e93;opacity:.7;letter-spacing:0}.savingCard .saving{font-size:58px;margin-bottom:10px}.savingSecondary{display:flex;align-items:baseline;gap:7px;padding-top:12px;margin-bottom:2px;border-top:1px solid rgba(0,0,0,.07);font-size:13px;color:#6e6e73}.savingSecondary b{font-size:18px;color:#3a3a3c}.savingMessage{font-size:14px;color:#3a3a3c;margin-top:-2px;margin-bottom:16px}.savingGoal{font-size:12px;color:#6e6e73;margin-top:15px}.savingGoalTop{display:flex;justify-content:space-between;gap:10px}.savingGoalBar{height:5px;background:#e5e5ea;border-radius:99px;overflow:hidden;margin-top:7px}.savingGoalFill{height:100%;width:0;background:#007aff;border-radius:99px;transition:width .3s ease}
 .label{color:#6e6e73;font-size:15px}.saving{font-size:56px;letter-spacing:-3px;font-weight:700;margin:7px 0 20px}.sub{font-size:14px;color:#6e6e73}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.stat{background:#f5f5f7;border-radius:18px;padding:17px}.stat b{display:block;font-size:24px;margin-bottom:4px}.stat span{font-size:13px;color:#6e6e73}
 h2{font-size:22px;letter-spacing:-.5px;margin:30px 2px 14px}
@@ -119,7 +119,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.15</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.16</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -187,7 +187,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.15</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.16</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -864,11 +864,30 @@ function getPeriodStats(period){
       if(type==='car') car++;
     }
   }
-  const avoidableKm=+$('avoidableKm').value||+$('carKm').value||0;
+
   const distance=+$('distance').value||0;
   const ticket=+$('ticket').value||0;
-  const perTrip=avoidableKm*distance*2;  const ticketCost=period==='year'?ticket*12:(period==='month'?ticket:ticket/4.345);
-  const avoided=perTrip*train;
+  const fuelType=$('setFuelType')?.value||'e5';
+  const fallbackFuelPrice=Math.max(0,+$('setFuelFallbackPrice')?.value||+$('setFuelPrice').value||0);
+  const fuelConsumption=Math.max(0,+$('setFuelConsumption').value||0);
+  const fuelKm=+$('fuelKm').value||0;
+  const maintenanceKm=+$('maintenanceKm').value||0;
+  const avoidableKm=+$('avoidableKm').value||+$('carKm').value||0;
+
+  let avoided=0;
+  for(const [iso,type] of Object.entries(data.events||{})){
+    const d=new Date(iso+'T12:00:00');
+    if(type!=='train' || d<start || d>=end) continue;
+    const fp=data.fuelPrices?.[iso];
+    const price=fp&&fp.type===fuelType?Number(fp.price):fallbackFuelPrice;
+    const fuel=price>0 && fuelConsumption>0
+      ? distance*2*fuelConsumption*price/100
+      : distance*2*fuelKm;
+    const maintenance=distance*2*maintenanceKm;
+    avoided+=fuel+maintenance;
+  }
+
+  const ticketCost=period==='year'?ticket*12:(period==='month'?ticket:ticket/4.345);
   const net=Math.max(0,avoided-ticketCost);
   const carCo2=+$('co2CarKgKm').value||CO2_CAR_DEFAULT_KG_PER_KM;
   const co2Saved=Math.max(0,(carCo2-CO2_TRAIN_KG_PER_KM)*distance*2*train);
