@@ -12,6 +12,8 @@
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
 .logo{font-size:29px;font-weight:700;letter-spacing:-1px}.month{font-size:14px;color:#6e6e73}
 .card{background:rgba(255,255,255,.86);border:1px solid rgba(0,0,0,.06);border-radius:26px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.savingCard{background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(245,248,255,.96));border:1px solid rgba(0,122,255,.09);box-shadow:0 12px 38px rgba(0,0,0,.07)}
+.savingCard .saving{font-size:58px;margin-bottom:10px}.savingMessage{font-size:14px;color:#3a3a3c;margin-top:-2px;margin-bottom:16px}.savingGoal{font-size:12px;color:#6e6e73;margin-top:15px}.savingGoalTop{display:flex;justify-content:space-between;gap:10px}.savingGoalBar{height:5px;background:#e5e5ea;border-radius:99px;overflow:hidden;margin-top:7px}.savingGoalFill{height:100%;width:0;background:#007aff;border-radius:99px;transition:width .3s ease}
 .label{color:#6e6e73;font-size:15px}.saving{font-size:56px;letter-spacing:-3px;font-weight:700;margin:7px 0 20px}.sub{font-size:14px;color:#6e6e73}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.stat{background:#f5f5f7;border-radius:18px;padding:17px}.stat b{display:block;font-size:24px;margin-bottom:4px}.stat span{font-size:13px;color:#6e6e73}
 h2{font-size:22px;letter-spacing:-.5px;margin:30px 2px 14px}
@@ -184,14 +186,15 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </div>
 <div class="app">
 <div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.11</div><div class="account" id="accountBtn">Konto</div></div></header>
-<section class="card">
+<section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
-<div class="sub">diesen Monat</div>
+<div class="savingMessage" id="savingMessage">Jede Zugfahrt macht deine Pendelbilanz ein Stück besser.</div>
 <div class="stats">
 <div class="stat"><b id="trainDays">0</b><span>Zugfahrten</span></div>
 <div class="stat"><b id="carDays">0</b><span>Autofahrten</span></div>
 </div>
+<div class="savingGoal"><div class="savingGoalTop"><span>Sparziel</span><span id="savingGoalPct">0 %</span></div><div class="savingGoalBar"><div class="savingGoalFill" id="savingGoalFill"></div></div></div>
 </section>
 <h2>Wie bist du heute gefahren?</h2>
 <div class="actions">
@@ -904,6 +907,13 @@ function calc(){
   $('perDay').textContent=dist>0?eur(avoidableTrip):'Bitte Strecke in Einstellungen eintragen';
   $('netMonth').textContent=eur(net);
   $('saving').textContent=eur(net);
+  const savingGoal=Math.max(0,+$('goal').value||2000);
+  const savingPct=savingGoal>0?Math.min(100,Math.max(0,net/savingGoal*100)):0;
+  if($('savingGoalPct')) $('savingGoalPct').textContent=Math.round(savingPct)+' %';
+  if($('savingGoalFill')) $('savingGoalFill').style.width=savingPct+'%';
+  if($('savingMessage')){
+    $('savingMessage').textContent=net<=0?'Starte mit deiner ersten Zugfahrt und sieh, was du sparen kannst.':savingPct>=100?'Dein Sparziel ist erreicht. Stark gemacht! 🎉':net>=100?'Du bist schon auf einem guten Weg. Jede Zugfahrt zählt.':'Jede Zugfahrt macht deine Pendelbilanz ein Stück besser.';
+  }
   $('trainDays').textContent=data.train;
   $('carDays').textContent=data.car;
 
