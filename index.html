@@ -26,12 +26,12 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   bottom:12px;
   transform:translateX(-50%);
   width:min(480px,calc(100% - 24px));
-  background:rgba(255,255,255,.94);
-  backdrop-filter:blur(24px);
-  -webkit-backdrop-filter:blur(24px);
-  border:1px solid rgba(0,0,0,.08);
-  border-radius:22px;
-  box-shadow:0 10px 35px rgba(0,0,0,.10);
+  background:rgba(255,255,255,.62);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,.72);
+  border-radius:24px;
+  box-shadow:0 14px 40px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.8);
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:5px;
@@ -43,7 +43,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   border:0;
   background:transparent;
   color:#6e6e73;
-  border-radius:17px;
+  border-radius:18px;
   padding:9px 4px 8px;
   font-size:11px;
   line-height:1.1;
@@ -53,12 +53,13 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   justify-content:center;
   gap:4px;
   cursor:pointer;
-  transition:background .18s ease,color .18s ease,transform .18s ease;
+  transition:background .2s ease,color .2s ease,transform .2s ease;
 }
 .bottom button:active{transform:scale(.97)}
 .bottom button.active{
   color:#007aff;
-  background:#eef5ff;
+  background:rgba(255,255,255,.68);
+  box-shadow:0 3px 12px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.85);
   font-weight:650;
 }
 .bottom .navIcon{
@@ -71,8 +72,9 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   margin:0;
   white-space:nowrap;
 }
-
-.bottom span:first-child{color:#007aff;font-weight:600}
+@media (prefers-reduced-transparency: reduce){
+  .bottom{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(10px);background:#1d1d1f;color:#fff;padding:12px 18px;border-radius:18px;opacity:0;transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%)}
 
 .onboard{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:5;display:flex;align-items:center;justify-content:center;padding:24px}
