@@ -110,7 +110,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 .authswitch button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;font-size:15px}.authswitch .active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);font-weight:600}
 .authmsg{font-size:14px;color:#6e6e73;min-height:20px;margin-top:12px}.account{font-size:13px;color:#6e6e73;cursor:pointer}
 
-</style>
+.profileModal{position:fixed;inset:0;background:rgba(245,245,247,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:40;display:flex;align-items:flex-end;justify-content:center;padding:18px}.profileModal.hidden{display:none}.profileBox{width:min(520px,100%);max-height:calc(100vh - 36px);overflow:auto;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.16)}.profileHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.profileHead h2{margin:0;font-size:28px}.profileClose{width:36px;height:36px;border:0;border-radius:50%;background:#f5f5f7;font-size:22px;color:#6e6e73;cursor:pointer}.profileSection{margin-top:22px}.profileSection h3{font-size:17px;margin:0 0 10px}.profileGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.profileActions{display:grid;gap:10px;margin-top:18px}.secondary{width:100%;border:0;border-radius:17px;padding:15px;background:#f5f5f7;color:#1d1d1f;font-size:16px;font-weight:650}.danger{width:100%;border:0;border-radius:17px;padding:15px;background:#fff0f0;color:#c62828;font-size:16px;font-weight:650}.profileHint{font-size:13px;color:#6e6e73;min-height:18px;margin-top:9px}@media(max-width:430px){.profileGrid{grid-template-columns:1fr}}</style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -379,7 +379,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 </div>
 </div>
-<nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
+<div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
   <button class="active" type="button" onclick="showTab('overview',this)">
     <span class="navIcon">⌂</span><span class="navLabel">Übersicht</span>
   </button>
@@ -457,10 +457,53 @@ async function signOut(){
   $('auth').classList.remove('hidden');
   $('onboard').classList.add('hidden');
   $('accountBtn').textContent='Konto';
+  closeAccount();
+}
+function updateAccountLabel(){
+  if(!currentUser || !$('accountBtn')) return;
+  const meta=currentUser.user_metadata||{};
+  const name=[meta.first_name,meta.last_name].filter(Boolean).join(' ').trim();
+  $('accountBtn').textContent=name||((currentUser.email||'Konto').split('@')[0]);
 }
 function accountMenu(){
   if(!currentUser)return;
-  if(confirm('Möchtest du dich von Pendly abmelden?')) signOut();
+  const meta=currentUser.user_metadata||{};
+  $('profileFirstName').value=meta.first_name||'';
+  $('profileLastName').value=meta.last_name||'';
+  $('profileEmail').value=currentUser.email||'';
+  $('profileNewPassword').value='';
+  $('profileHint').textContent='';
+  $('profileModal').classList.remove('hidden');
+  $('profileModal').setAttribute('aria-hidden','false');
+}
+function closeAccount(){
+  $('profileModal').classList.add('hidden');
+  $('profileModal').setAttribute('aria-hidden','true');
+}
+async function saveProfile(){
+  if(!currentUser||!sb)return;
+  const first=$('profileFirstName').value.trim();
+  const last=$('profileLastName').value.trim();
+  $('profileHint').textContent='Profil wird gespeichert …';
+  try{
+    const {data:result,error}=await sb.auth.updateUser({data:{first_name:first,last_name:last,full_name:[first,last].filter(Boolean).join(' ')}});
+    if(error)throw error;
+    currentUser=result.user||currentUser;
+    updateAccountLabel();
+    $('profileHint').textContent='Profil gespeichert.';
+  }catch(e){$('profileHint').textContent=e.message||'Profil konnte nicht gespeichert werden.';}
+}
+async function changePassword(){
+  if(!currentUser||!sb)return;
+  const password=$('profileNewPassword').value;
+  if(password.length<6){$('profileHint').textContent='Das Passwort muss mindestens 6 Zeichen haben.';return;}
+  $('profileHint').textContent='Passwort wird geändert …';
+  try{
+    const {error}=await sb.auth.updateUser({password});
+    if(error)throw error;
+    $('profileNewPassword').value='';
+    $('profileHint').textContent='Passwort erfolgreich geändert.';
+  }catch(e){$('profileHint').textContent=e.message||'Passwort konnte nicht geändert werden.';}
 }
 function localDataKey(userId){return 'pendly-user-'+userId;}
 
@@ -1291,7 +1334,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
       currentUser=session?.user||null;
       if(currentUser){
         $('auth').classList.add('hidden');
-        $('accountBtn').textContent=(currentUser.email||'Konto').split('@')[0];
+        updateAccountLabel();
         try{
           const hasCloudData=await loadUserData();
           const onboardKey='pendly-onboard-'+currentUser.id;
@@ -1315,7 +1358,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
 
   if(currentUser){
     $('auth').classList.add('hidden');
-    $('accountBtn').textContent=(currentUser.email||'Konto').split('@')[0];
+    updateAccountLabel();
     try{
       const hasCloudData=await loadUserData();
       const onboardKey='pendly-onboard-'+currentUser.id;
@@ -1349,6 +1392,10 @@ window.closeEditor=closeEditor;
 window.showTab=showTab;
 window.saveSettings=saveSettings;
 window.resetData=resetData;
+window.accountMenu=accountMenu;
+window.closeAccount=closeAccount;
+window.saveProfile=saveProfile;
+window.changePassword=changePassword;
 
 window.showTab=showTab;window.updateStats=updateStats;window.loadSettings=loadSettings;
 window.saveSettings=saveSettings;window.resetData=resetData;
