@@ -1318,6 +1318,11 @@ document.addEventListener('DOMContentLoaded',async()=>{
   $('fgFile').addEventListener('change',e=>{if(e.target.files[0])importFinancialGuru(e.target.files[0]);});
   $('oTicketMode').addEventListener('change',updateTicketUI);
   updateTicketUI();
+  if($('setFuelFallbackPrice')) $('setFuelFallbackPrice').addEventListener('input',()=>{
+    if($('setFuelPrice')) $('setFuelPrice').value=$('setFuelFallbackPrice').value;
+    repairCostBreakdown();
+    calc();
+  });
   ['carKm','avoidableKm','fuelKm','maintenanceKm','depreciationKm','ticket','days','distance','insurance','maintenance','tax','parking','goal','annualKm','co2CarKgKm'].forEach(id=>{if($(id)) $(id).addEventListener('input',calc);});
   $('month').textContent=new Date().toLocaleDateString('de-DE',{month:'long',year:'numeric'});
 
