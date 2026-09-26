@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.39</title>
+<title>Pendly v0.14.40</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -387,7 +387,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 </div>
 </div>
-<div class="fuelPriceModal hidden" id="fuelPriceModal" aria-hidden="true"><div class="fuelPriceBox"><div class="fuelPriceHead"><h2>Preise deiner Zugtage</h2><button class="fuelPriceClose" type="button" onclick="closeFuelPriceDetails()">×</button></div><p class="sub" style="margin:0 0 14px">Hier siehst du für jeden Zugtag den Literpreis, den Pendly für die Berechnung verwendet hat.</p><div class="fuelPriceList" id="fuelPriceList"></div></div></div><div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
+<div class="fuelPriceModal hidden" id="fuelPriceModal" aria-hidden="true"><div class="fuelPriceBox"><div class="fuelPriceHead"><h2>Preise deiner Zugtage</h2><button class="fuelPriceClose" type="button" onclick="closeFuelPriceDetails()">×</button></div><p class="sub" style="margin:0 0 14px">Hier siehst du für jeden Zugtag den Literpreis, den Pendly für die Berechnung verwendet hat.</p><div class="fuelPriceList" id="fuelPriceList"></div></div></div><div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="secondary" type="button" onclick="exportPendlyJSON()">Daten als JSON exportieren</button><button class="secondary" type="button" onclick="exportPendlyCSV()">Fahrten als CSV exportieren</button><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
   <button class="active" type="button" onclick="showTab('overview',this)">
     <span class="navIcon">⌂</span><span class="navLabel">Übersicht</span>
   </button>
@@ -518,6 +518,42 @@ function closeAccount(){
   $('profileModal').classList.add('hidden');
   $('profileModal').setAttribute('aria-hidden','true');
 }
+function downloadTextFile(filename,text,mime){
+  const blob=new Blob([text],{type:mime+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportPendlyJSON(){
+  if(!currentUser)return;
+  const meta=currentUser.user_metadata||{};
+  const payload={
+    app:'Pendly',
+    version:document.querySelector('.appVersion')?.textContent||'',
+    exportedAt:new Date().toISOString(),
+    account:{email:currentUser.email||'',firstName:meta.first_name||'',lastName:meta.last_name||''},
+    settings:getSettings(),
+    data:JSON.parse(JSON.stringify(data))
+  };
+  downloadTextFile('pendly-export-'+localISODate()+'.json',JSON.stringify(payload,null,2),'application/json');
+  $('profileHint').textContent='JSON-Datensicherung wurde erstellt.';
+}
+function exportPendlyCSV(){
+  if(!currentUser)return;
+  const rows=[['Datum','Fahrt','Entfernung einfache Strecke (km)','Kraftstoffpreis (€/l)','Vermeidbare Autokosten (€)','Ticketanteil (€)','Netto-Ersparnis (€)','CO₂-Ersparnis (kg)']];
+  Object.keys(data.events||{}).sort().forEach(day=>{
+    const type=data.events[day];
+    const eco=calculateTripEconomics(day);
+    const fp=data.fuelPrices?.[day];
+    const price=fp&&Number(fp.price)>0?Number(fp.price):'';
+    rows.push([day,type||'',String(+$('distance').value||0).replace('.',','),price===''?'':Number(price).toFixed(3).replace('.',','),Number(eco.avoidable||0).toFixed(2).replace('.',','),Number(eco.ticket||0).toFixed(2).replace('.',','),Number(eco.net||0).toFixed(2).replace('.',','),Number(eco.co2||0).toFixed(3).replace('.',',')]);
+  });
+  const csv='\\ufeff'+rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\\r\\n');
+  downloadTextFile('pendly-fahrten-'+localISODate()+'.csv',csv,'text/csv');
+  $('profileHint').textContent='CSV-Export wurde erstellt.';
+}
+
 async function saveProfile(){
   if(!currentUser||!sb)return;
   const first=$('profileFirstName').value.trim();
@@ -1607,6 +1643,8 @@ window.showTab=showTab;
 window.saveSettings=saveSettings;
 window.resetData=resetData;
 window.accountMenu=accountMenu;
+window.exportPendlyJSON=exportPendlyJSON;
+window.exportPendlyCSV=exportPendlyCSV;
 window.closeAccount=closeAccount;
 window.saveProfile=saveProfile;
 window.changePassword=changePassword;
