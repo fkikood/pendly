@@ -110,7 +110,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 .authswitch button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;font-size:15px}.authswitch .active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);font-weight:600}
 .authmsg{font-size:14px;color:#6e6e73;min-height:20px;margin-top:12px}.account{font-size:13px;color:#6e6e73;cursor:pointer}
 
-.profileModal{position:fixed;inset:0;background:rgba(245,245,247,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:40;display:flex;align-items:flex-start;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.profileModal.hidden{display:none}.profileBox{width:min(520px,100%);max-height:none;overflow:visible;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.16)}.profileHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.profileHead h2{margin:0;font-size:28px}.profileClose{width:36px;height:36px;border:0;border-radius:50%;background:#f5f5f7;font-size:22px;color:#6e6e73;cursor:pointer}.profileSection{margin-top:22px}.profileSection h3{font-size:17px;margin:0 0 10px}.profileGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.profileActions{display:grid;gap:10px;margin-top:18px}.secondary{width:100%;border:0;border-radius:17px;padding:15px;background:#f5f5f7;color:#1d1d1f;font-size:16px;font-weight:650}.danger{width:100%;border:0;border-radius:17px;padding:15px;background:#fff0f0;color:#c62828;font-size:16px;font-weight:650}.profileHint{font-size:13px;color:#6e6e73;min-height:18px;margin-top:9px}@media(max-width:430px){.profileGrid{grid-template-columns:1fr}}</style>
+.fuelPriceModal{position:fixed;inset:0;background:rgba(245,245,247,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:45;display:flex;align-items:flex-start;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto}.fuelPriceModal.hidden{display:none}.fuelPriceBox{width:min(520px,100%);background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.16)}.fuelPriceHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.fuelPriceHead h2{margin:0;font-size:24px}.fuelPriceClose{width:36px;height:36px;border:0;border-radius:50%;background:#f5f5f7;font-size:22px;color:#6e6e73;cursor:pointer}.fuelPriceList{display:grid;gap:8px}.fuelPriceItem{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:13px 14px;background:#f5f5f7;border-radius:16px}.fuelPriceItem b{font-size:15px}.fuelPriceValue{text-align:right;font-size:16px;font-weight:700}.fuelPriceSource{display:block;margin-top:3px;font-size:11px;color:#6e6e73;line-height:1.25}.fuelPriceApprox{color:#9a6700}.fuelPriceFallback{color:#c62828}.profileModal{position:fixed;inset:0;background:rgba(245,245,247,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:40;display:flex;align-items:flex-start;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.profileModal.hidden{display:none}.profileBox{width:min(520px,100%);max-height:none;overflow:visible;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.16)}.profileHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.profileHead h2{margin:0;font-size:28px}.profileClose{width:36px;height:36px;border:0;border-radius:50%;background:#f5f5f7;font-size:22px;color:#6e6e73;cursor:pointer}.profileSection{margin-top:22px}.profileSection h3{font-size:17px;margin:0 0 10px}.profileGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.profileActions{display:grid;gap:10px;margin-top:18px}.secondary{width:100%;border:0;border-radius:17px;padding:15px;background:#f5f5f7;color:#1d1d1f;font-size:16px;font-weight:650}.danger{width:100%;border:0;border-radius:17px;padding:15px;background:#fff0f0;color:#c62828;font-size:16px;font-weight:650}.profileHint{font-size:13px;color:#6e6e73;min-height:18px;margin-top:9px}@media(max-width:430px){.profileGrid{grid-template-columns:1fr}}</style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -346,7 +346,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="row"><div><b>Fallback-Preis</b><small>wird genutzt, wenn kein Tagespreis verfügbar ist</small></div><div style="width:130px"><input id="setFuelFallbackPrice" type="number" step="0.001" min="0" placeholder="1,75"></div></div>
   <div class="row"><div><b>Aktueller Preis</b><small id="fuelPriceSource">wird für Zugtage geladen</small></div><b id="setFuelLivePrice">–</b></div>
   <div class="row"><div><b>Kraftstoffkosten / km</b><small>wird aus den abgerufenen Preisen berechnet</small></div><b id="setFuelKmDisplay">0,000 €/km</b></div>
-  <button class="primary" type="button" onclick="refreshFuelPricesForTrainDays()">Preise für meine Zugtage aktualisieren</button>
+  <button class="primary" type="button" onclick="refreshFuelPricesForTrainDays()">Preise für meine Zugtage aktualisieren</button><button class="secondary" type="button" onclick="openFuelPriceDetails()" style="margin-top:10px">Preisdetails meiner Zugtage anzeigen</button>
   <div id="fuelSettingsHint" class="sub" style="margin-top:10px"></div>
   <p class="sub" style="margin:10px 0 0">Quelle: Tankerkönig · MTS-K für aktuelle Tage · MTS-K für historische Tage. Die Preise werden über Supabase sicher abgerufen.</p>
 </section>
@@ -381,7 +381,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 </div>
 </div>
-<div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
+<div class="fuelPriceModal hidden" id="fuelPriceModal" aria-hidden="true"><div class="fuelPriceBox"><div class="fuelPriceHead"><h2>Preise deiner Zugtage</h2><button class="fuelPriceClose" type="button" onclick="closeFuelPriceDetails()">×</button></div><p class="sub" style="margin:0 0 14px">Hier siehst du für jeden Zugtag den Literpreis, den Pendly für die Berechnung verwendet hat.</p><div class="fuelPriceList" id="fuelPriceList"></div></div></div><div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 6 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
   <button class="active" type="button" onclick="showTab('overview',this)">
     <span class="navIcon">⌂</span><span class="navLabel">Übersicht</span>
   </button>
@@ -1268,6 +1268,38 @@ async function fetchFuelPrice(userAction=false, targetDay=null){
   }
 }
 
+function openFuelPriceDetails(){
+  const list=$('fuelPriceList');
+  if(!list)return;
+  const today=localISODate();
+  const fuelType=$('setFuelType')?.value||'e5';
+  const fallback=Math.max(0,+$('setFuelFallbackPrice')?.value||+$('setFuelPrice')?.value||0);
+  const fuelMap={e5:'Super E5',e10:'Super E10',diesel:'Diesel'};
+  const days=Object.keys(data.events||{}).filter(d=>data.events[d]==='train').sort();
+  if(!days.length){
+    list.innerHTML='<div class="sub">Noch keine Zugtage im Kalender eingetragen.</div>';
+  }else{
+    list.innerHTML=days.map(day=>{
+      const fp=data.fuelPrices?.[day];
+      const valid=fp&&fp.type===fuelType&&Number(fp.price)>0;
+      const price=valid?Number(fp.price):fallback;
+      const date=new Date(day+'T12:00:00').toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+      let source=valid?(fp.source||'Kraftstoffdaten'):'Fallback-Preis';
+      let cls=valid?'':'fuelPriceFallback';
+      if(valid && String(source).toLowerCase().includes('näherungs')) cls='fuelPriceApprox';
+      const note=valid
+        ? (String(source).toLowerCase().includes('näherungs')?'Näherungswert aus benachbarten Tageswerten':'verwendeter Tagespreis')
+        : 'kein Tagespreis gespeichert';
+      return '<div class="fuelPriceItem"><div><b>'+date+'</b><span class="fuelPriceSource '+cls+'">'+fuelMap[fuelType]+' · '+note+'<br>'+source+'</span></div><div class="fuelPriceValue">'+(price>0?price.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/l':'–')+'</div></div>';
+    }).join('');
+  }
+  $('fuelPriceModal').classList.remove('hidden');
+  $('fuelPriceModal').setAttribute('aria-hidden','false');
+}
+function closeFuelPriceDetails(){
+  $('fuelPriceModal').classList.add('hidden');
+  $('fuelPriceModal').setAttribute('aria-hidden','true');
+}
 async function refreshFuelPricesForTrainDays(){
   const today=localISODate();
   const allDays=Object.keys(data.events||{}).filter(d=>data.events[d]==='train').sort();
