@@ -133,7 +133,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.54</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.55</div>
     </div>
     <h1>Jede Zugfahrt hat einen Wert.<br>Pendly zeigt dir welchen.</h1>
     <p>Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
@@ -142,6 +142,19 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
       <button id="loginTab" class="active" type="button" onclick="setAuthMode('login')">Anmelden</button>
       <button id="signupTab" type="button" onclick="setAuthMode('signup')">Konto erstellen</button>
     </div>
+<section class="card" style="margin-top:18px;text-align:left">
+  <div class="label">Pendly einmal ausprobieren – ohne Konto</div>
+  <p class="sub" style="margin:7px 0 12px">Wie viel vermeidest du an einem Zugtag?</p>
+  <div class="profileGrid">
+    <div class="field"><label>Einfache Strecke (km)</label><input id="quickDistance" type="number" min="0" step="1" value="25"></div>
+    <div class="field"><label>Vermeidbare Autokosten / km</label><input id="quickCarKm" type="number" min="0" step="0.01" value="0.25"></div>
+    <div class="field"><label>Eigener Ticketanteil / Monat</label><input id="quickTicket" type="number" min="0" step="1" value="58"></div>
+    <div class="field"><label>Arbeitstage / Monat</label><input id="quickDays" type="number" min="1" step="1" value="20"></div>
+  </div>
+  <div class="saving" id="quickResult" style="margin-top:12px">12,50 €</div>
+  <div class="sub" id="quickResultText">vermeidbare Autokosten pro Zugtag · deine Rechnung bleibt nur in diesem Browser</div>
+  <button class="secondary" type="button" onclick="quickCalc()">Berechnen</button>
+</section>
     <div class="field"><label>E-Mail-Adresse</label><input id="authEmail" type="email" autocomplete="email" placeholder="du@beispiel.de"></div>
     <div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 6 Zeichen"></div>
     <button class="primary" id="authSubmit" type="button" onclick="submitAuth()">Anmelden</button>
@@ -205,7 +218,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.54</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.55</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -460,7 +473,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.54</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.55</b></div>
 </section>
 </div>
 </div>
@@ -506,6 +519,17 @@ const $=id=>document.getElementById(id);
 const eur=n=>Number(n||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'});
 
 function setAuthMessage(msg){$('authMsg').textContent=msg||'';}
+function quickCalc(){
+  const dist=Math.max(0,+$('quickDistance').value||0);
+  const carKm=Math.max(0,+$('quickCarKm').value||0);
+  const ticket=Math.max(0,+$('quickTicket').value||0);
+  const days=Math.max(1,+$('quickDays').value||1);
+  const perDay=dist*2*carKm;
+  const net=Math.max(0,perDay-ticket/days);
+  $('quickResult').textContent=eur(net);
+  $('quickResultText').textContent='Netto-Ersparnis pro Zugtag · bei 1 Zugtag/Woche etwa '+eur(net*4.345)+' / Monat';
+}
+
 function setAuthMode(mode){
   authMode=mode;
   const recovery=mode==='recovery';
