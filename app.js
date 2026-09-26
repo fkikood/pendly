@@ -1108,7 +1108,8 @@ function applyCommutePattern(){
 }
 
 function updateAnnualReport(){
-  const year=new Date().getFullYear();
+  const now=new Date();
+  const year=now.getFullYear();
   let train=0,car=0,home=0,avoided=0,co2=0;
   Object.keys(data.events||{}).forEach(iso=>{
     if(!iso.startsWith(String(year)+'-'))return;
@@ -1117,11 +1118,16 @@ function updateAnnualReport(){
     else if(type==='car')car++;
     else if(type==='home')home++;
   });
-  const ticket=Math.max(0,+$('ticket').value||0)*12;
+  // For the current year, only ticket months that have actually elapsed are
+  // charged. A completed past year keeps the full 12 monthly costs.
+  const ticketMonths=year===now.getFullYear()?now.getMonth()+1:12;
+  const monthlyTicket=Math.max(0,+$('ticket').value||0);
+  const ticket=monthlyTicket*ticketMonths;
   const net=Math.max(0,avoided-ticket);
   const workdays=train+car+home;
   $('annualReportTitle').textContent='Jahresrückblick '+year;
   $('annualReportNet').textContent=eur(net);
+  $('annualReportNetLabel').textContent=year===now.getFullYear()?'geschätzte Netto-Ersparnis bisher':'geschätzte Netto-Ersparnis';
   $('annualTrain').textContent=train;
   $('annualCar').textContent=car;
   $('annualHome').textContent=home;
@@ -1154,8 +1160,8 @@ function annualReportText(){
   const year=new Date().getFullYear();
   return 'Pendly-Jahresbericht '+year+'\n\n'+
     'Netto-Ersparnis: '+$('annualReportNet').textContent+'\n'+
-    'Zugfahrten: '+$('annualTrain').textContent+'\n'+
-    'Autofahrten: '+$('annualCar').textContent+'\n'+
+    'Zugtage: '+$('annualTrain').textContent+'\n'+
+    'Autotage: '+$('annualCar').textContent+'\n'+
     'Homeoffice-Tage: '+$('annualHome').textContent+'\n'+
     'Autokosten vermieden: '+$('annualAvoided').textContent+'\n'+
     'CO₂ geschätzt eingespart: '+$('annualCo2').textContent+'\n'+
