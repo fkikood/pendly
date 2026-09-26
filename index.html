@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.43</title>
+<title>Pendly v0.14.44</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -82,7 +82,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 .onbox h1{font-size:34px;letter-spacing:-1.5px;margin:0 0 8px}.onbox p{color:#6e6e73;line-height:1.45}.field{margin:18px 0}.field label{display:block;font-size:14px;color:#6e6e73;margin-bottom:7px}
 .primary{width:100%;border:0;border-radius:17px;padding:16px;background:#007aff;color:#fff;font-size:17px;font-weight:650;margin-top:8px}
 .goalbar{height:8px;background:#e5e5ea;border-radius:8px;overflow:hidden;margin-top:10px}.goalfill{height:100%;width:0;background:#007aff;border-radius:8px}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.calhead{text-align:center;font-size:12px;color:#8e8e93;padding-bottom:3px}.calday{min-height:58px;border-radius:13px;background:#f5f5f7;text-align:center;padding:7px 3px;font-size:12px;cursor:pointer;user-select:none}.calday b{display:block;font-size:14px;margin-bottom:5px}.calday.train{background:#e8f2ff;color:#007aff}.calday.car{background:#eeeef0}.calday.home{background:#f8f8fa;color:#8e8e93}.calday.empty{opacity:.55}.calday.today{outline:2px solid #007aff;outline-offset:-2px}.calendarHint{font-size:13px;color:#6e6e73;margin-top:12px;text-align:center}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.calhead{text-align:center;font-size:12px;color:#8e8e93;padding-bottom:3px}.calday{min-height:58px;border-radius:13px;background:#f5f5f7;text-align:center;padding:7px 3px;font-size:12px;cursor:pointer;user-select:none}.calday b{display:block;font-size:14px;margin-bottom:5px}.calday.train{background:#e8f2ff;color:#007aff}.calday.car{background:#eeeef0}.calday.home{background:#f8f8fa;color:#8e8e93}.calday.off{background:#fbfbfd;color:#8e8e93}.calday.empty{opacity:.55}.calday.today{outline:2px solid #007aff;outline-offset:-2px}.calendarHint{font-size:13px;color:#6e6e73;margin-top:12px;text-align:center}
 
 
 .progressHero{margin-top:18px}
@@ -224,6 +224,8 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
     <div class="actions">
       <button class="action train" onclick="setDay('train')">🚆 Zug</button>
       <button class="action car" onclick="setDay('car')">🚗 Auto</button>
+      <button class="action" onclick="setDay('home')">🏠 Homeoffice</button>
+      <button class="action" onclick="setDay('off')">🌴 Frei / Urlaub</button>
     </div>
     <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="clearDay()">Eintrag löschen</button>
     <button class="primary" style="background:transparent;color:#007aff" onclick="closeEditor()">Abbrechen</button>
@@ -314,6 +316,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="reviewGrid">
     <div class="reviewMetric"><b id="sTrain">0</b><span>vermiedene Autofahrten</span></div>
     <div class="reviewMetric"><b id="sCar">0</b><span>Autofahrten</span></div>
+    <div class="reviewMetric"><b id="sHome">0</b><span>Homeoffice-Tage</span></div>
     <div class="reviewMetric"><b id="sAvoided">0,00 €</b><span>Autokosten vermieden</span></div>
     <div class="reviewMetric"><b id="sCo2">0,0 kg</b><span>geschätztes CO₂ eingespart</span></div>
   </div>
@@ -986,7 +989,7 @@ function getPeriodRange(period){
 }
 function getPeriodStats(period){
   const {start,end,label}=getPeriodRange(period);
-  let train=0,car=0,avoided=0;
+  let train=0,car=0,home=0,avoided=0;
   for(const [iso,type] of Object.entries(data.events||{})){
     const d=new Date(iso+'T12:00:00');
     if(d>=start && d<end){
@@ -995,6 +998,8 @@ function getPeriodStats(period){
         avoided+=calculateTripEconomics(iso).avoidable;
       }else if(type==='car'){
         car++;
+      }else if(type==='home'){
+        home++;
       }
     }
   }
@@ -1010,7 +1015,7 @@ function getPeriodStats(period){
     const d=new Date(iso+'T12:00:00');
     if(type==='train' && d>=start && d<end) co2Saved+=calculateTripEconomics(iso).co2;
   }
-  return {start,end,label,train,car,avoided,ticketCost,net,co2Saved,total:train+car};
+  return {start,end,label,train,car,home,avoided,ticketCost,net,co2Saved,total:train+car+home};
 }
 
 function formatKg(v){
@@ -1208,7 +1213,8 @@ async function travel(type){
   if(old==='train')data.train=Math.max(0,data.train-1);
   if(old==='car')data.car=Math.max(0,data.car-1);
   data.events[day]=type;
-  if(type==='train')data.train++; else data.car++;
+  if(type==='train')data.train++;
+  else if(type==='car')data.car++;
   if(type==='train' && !data.fuelPrices?.[day]) await ensureFuelPriceForToday();
   calc();
 
@@ -1254,7 +1260,7 @@ function renderCalendar(){
     const type=data.events[iso]||'';
     const isWeekend=dow===0||dow===6;
     const isToday=iso===today;
-    const icon=type==='train'?'🚆':type==='car'?'🚗':isWeekend?'':'·';
+    const icon=type==='train'?'🚆':type==='car'?'🚗':type==='home'?'🏠':type==='off'?'🌴':isWeekend?'':'·';
     const classes=['calday',type,isWeekend?'home':'',isToday?'today':''].filter(Boolean).join(' ');
     el.innerHTML+=`<div class="${classes}" data-iso="${iso}"><b>${d}</b>${icon}</div>`;
   }
@@ -1365,6 +1371,7 @@ function updateStats(){
   const st=getPeriodStats(statsPeriod);
   $('sTrain').textContent=st.train;
   $('sCar').textContent=st.car;
+  if($('sHome')) $('sHome').textContent=st.home;
   $('sAvoided').textContent=eur(st.avoided);
   $('sCo2').textContent=formatKg(st.co2Saved);
   $('periodNet').textContent=eur(st.net);
