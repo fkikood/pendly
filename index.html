@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.22</title>
+<title>Pendly v0.14.23</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -119,7 +119,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.22</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.23</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -187,7 +187,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.22</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.23</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -381,7 +381,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.22</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.23</b></div>
 </section>
 </div>
 </div>
@@ -861,43 +861,33 @@ function getPeriodRange(period){
 }
 function getPeriodStats(period){
   const {start,end,label}=getPeriodRange(period);
-  let train=0,car=0;
+  let train=0,car=0,avoided=0;
   for(const [iso,type] of Object.entries(data.events||{})){
     const d=new Date(iso+'T12:00:00');
     if(d>=start && d<end){
-      if(type==='train') train++;
-      if(type==='car') car++;
+      if(type==='train'){
+        train++;
+        avoided+=calculateTripEconomics(iso).avoidable;
+      }else if(type==='car'){
+        car++;
+      }
     }
   }
 
-  const distance=+$('distance').value||0;
-  const ticket=+$('ticket').value||0;
-  const fuelType=$('setFuelType')?.value||'e5';
-  const fallbackFuelPrice=Math.max(0,+$('setFuelFallbackPrice')?.value||+$('setFuelPrice').value||0);
-  const fuelConsumption=Math.max(0,+$('setFuelConsumption').value||0);
-  const fuelKm=+$('fuelKm').value||0;
-  const maintenanceKm=+$('maintenanceKm').value||0;
-  const avoidableKm=+$('avoidableKm').value||+$('carKm').value||0;
-
-  let avoided=0;
+  // Das Monatsticket ist ein fixer Monatsaufwand und wird deshalb einmal
+  // pro Monatsauswertung berücksichtigt. Wochen- und Jahreswerte werden
+  // entsprechend auf ihren Zeitraum hochgerechnet.
+  const monthlyTicket=Math.max(0,+$('ticket').value||0);
+  const ticketCost=period==='year'?monthlyTicket*12:(period==='month'?monthlyTicket:monthlyTicket/4.345);
+  const net=Math.max(0,avoided-ticketCost);
+  let co2Saved=0;
   for(const [iso,type] of Object.entries(data.events||{})){
     const d=new Date(iso+'T12:00:00');
-    if(type!=='train' || d<start || d>=end) continue;
-    const fp=data.fuelPrices?.[iso];
-    const price=fp&&fp.type===fuelType?Number(fp.price):fallbackFuelPrice;
-    const fuel=price>0 && fuelConsumption>0
-      ? distance*2*fuelConsumption*price/100
-      : distance*2*fuelKm;
-    const maintenance=distance*2*maintenanceKm;
-    avoided+=fuel+maintenance;
+    if(type==='train' && d>=start && d<end) co2Saved+=calculateTripEconomics(iso).co2;
   }
-
-  const ticketCost=period==='year'?ticket*12:(period==='month'?ticket:ticket/4.345);
-  const net=Math.max(0,avoided-ticketCost);
-  const carCo2=+$('co2CarKgKm').value||CO2_CAR_DEFAULT_KG_PER_KM;
-  const co2Saved=Math.max(0,(carCo2-CO2_TRAIN_KG_PER_KM)*distance*2*train);
   return {start,end,label,train,car,avoided,ticketCost,net,co2Saved,total:train+car};
 }
+
 function formatKg(v){
   return `${Number(v||0).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})} kg`;
 }
