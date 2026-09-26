@@ -133,7 +133,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.55</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.56</div>
     </div>
     <h1>Jede Zugfahrt hat einen Wert.<br>Pendly zeigt dir welchen.</h1>
     <p>Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
@@ -218,7 +218,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.55</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.56</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -473,7 +473,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.55</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.56</b></div>
 </section>
 </div>
 </div>
@@ -728,6 +728,14 @@ async function loadUserData(){
       applySettings(merged);
       hadCloudData=true;
     }else if(localHasProfile)applySettings(localSettings);
+    const {data:history,error:historyError}=await sb.from('commute_days').select('travel_date,mode,avoidable_cost_snapshot,ticket_cost_snapshot,net_saving_snapshot,co2_saving_snapshot').eq('user_id',userId);
+    if(historyError){
+      console.warn('Pendly-Historie konnte nicht geladen werden:',historyError);
+      data.commuteSnapshots={};
+    }else{
+      data.commuteSnapshots={};
+      (history||[]).forEach(row=>{data.commuteSnapshots[row.travel_date]={mode:row.mode,avoidable:Number(row.avoidable_cost_snapshot||0),ticket:Number(row.ticket_cost_snapshot||0),net:Number(row.net_saving_snapshot||0),co2:Number(row.co2_saving_snapshot||0)};});
+    }
     syncTripCounters();
     repairCostBreakdown();
     localStorage.setItem(localKey,JSON.stringify(data));
@@ -1075,6 +1083,14 @@ function getPeriodRange(period){
   const end=new Date(now.getFullYear()+1,0,1);
   return {start,end,label:'Dieses Jahr'};
 }
+function historicalDayEconomics(day){
+  const snap=data.commuteSnapshots?.[day];
+  if(snap && snap.mode==='train'){
+    return {avoidable:Number(snap.avoidable||0),ticket:Number(snap.ticket||0),net:Number(snap.net||0),co2:Number(snap.co2||0)};
+  }
+  return calculateTripEconomics(day);
+}
+
 function getPeriodStats(period){
   const {start,end,label}=getPeriodRange(period);
   let train=0,car=0,home=0,avoided=0;
@@ -1083,7 +1099,7 @@ function getPeriodStats(period){
     if(d>=start && d<end){
       if(type==='train'){
         train++;
-        avoided+=calculateTripEconomics(iso).avoidable;
+        avoided+=historicalDayEconomics(iso).avoidable;
       }else if(type==='car'){
         car++;
       }else if(type==='home'){
@@ -1101,7 +1117,7 @@ function getPeriodStats(period){
   let co2Saved=0;
   for(const [iso,type] of Object.entries(data.events||{})){
     const d=new Date(iso+'T12:00:00');
-    if(type==='train' && d>=start && d<end) co2Saved+=calculateTripEconomics(iso).co2;
+    if(type==='train' && d>=start && d<end) co2Saved+=historicalDayEconomics(iso).co2;
   }
   return {start,end,label,train,car,home,avoided,ticketCost,net,co2Saved,total:train+car+home};
 }
@@ -1506,7 +1522,7 @@ function updateAnnualReport(){
   Object.keys(data.events||{}).forEach(iso=>{
     if(!iso.startsWith(String(year)+'-'))return;
     const type=data.events[iso];
-    if(type==='train'){train++;const eco=calculateTripEconomics(iso);avoided+=eco.avoidable;co2+=eco.co2;}
+    if(type==='train'){train++;const eco=historicalDayEconomics(iso);avoided+=eco.avoidable;co2+=eco.co2;}
     else if(type==='car')car++;
     else if(type==='home')home++;
   });
