@@ -107,3 +107,20 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 .legalPage{max-width:760px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom))}.legalPage h1{font-size:42px;letter-spacing:-1.8px;margin:0 0 8px}.legalPage h2{margin:0 0 10px}.legalPage .card{margin:18px 0}.legalPage p{line-height:1.55;color:#3a3a3c}.legalPage a{color:#007aff}
 
 button,a,input,select,textarea{outline-offset:3px}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(0,122,255,.45);outline-offset:3px}.primary,.secondary,.danger,.action,.bottom button,.patternDays button{min-height:44px}.patternDays button{padding-top:10px;padding-bottom:10px}
+
+.changelogCard{padding-bottom:22px}
+.changelogIntro{margin:0 0 20px;line-height:1.45}
+.changelogTimeline{position:relative;margin:0 2px}
+.changelogTimeline:before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:#e5e5ea}
+.changelogItem{position:relative;display:grid;grid-template-columns:16px 1fr;gap:12px;padding:0 0 24px}
+.changelogItem:last-child{padding-bottom:4px}
+.changelogDot{position:relative;z-index:1;width:16px;height:16px;margin-top:3px;border-radius:50%;background:#d2d2d7;border:4px solid #fff;box-shadow:0 0 0 1px #d2d2d7}
+.changelogItem.current .changelogDot{background:#007aff;box-shadow:0 0 0 1px #007aff}
+.changelogContent{min-width:0}
+.changelogMeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.changelogMeta b{font-size:14px;color:#1d1d1f}
+.changelogMeta span{font-size:12px;color:#8e8e93}
+.changelogContent h3{font-size:17px;letter-spacing:-.2px;margin:0 0 7px}
+.changelogContent ul{margin:0;padding-left:18px;color:#6e6e73;font-size:13px;line-height:1.45}
+.changelogContent li+li{margin-top:3px}
+.changelogFooter{margin:18px 0 0;padding-top:14px;border-top:1px solid #e5e5ea;font-size:12px;color:#8e8e93}
