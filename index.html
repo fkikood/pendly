@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.41</title>
+<title>Pendly v0.14.42</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -250,6 +250,13 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
     <div class="stat"><b id="scenarioYear">—</b><span>zusätzlich / Jahr</span></div>
   </div>
   <p class="sub" id="scenarioHint" style="margin-top:12px">Schätzung auf Basis deiner aktuellen kilometerabhängigen Autokosten und deines eigenen Ticketanteils.</p>
+</section>
+
+<h2>Dein Ticket-Break-even</h2>
+<section class="card">
+  <div class="label">Ab wann rechnet sich dein Monatsticket?</div>
+  <div class="saving" id="breakEvenDays" style="font-size:40px;letter-spacing:-2px;margin-bottom:8px">—</div>
+  <div class="sub" id="breakEvenText">Pendly vergleicht deinen eigenen Ticketanteil mit den vermeidbaren Autokosten pro Zugtag.</div>
 </section>
 
 <h2>So setzt sich deine Ersparnis zusammen</h2>
@@ -1161,6 +1168,7 @@ function calc(){
   localStorage.setItem(currentUser?localDataKey(currentUser.id):key,JSON.stringify(data));
   scheduleCloudSave();
   updateScenario();
+  updateBreakEven();
 }
 
 function localISODate(date=new Date()){
@@ -1298,6 +1306,28 @@ function showTab(tab,btn){
   if(tab==='settings') loadSettings();
   window.scrollTo({top:0,behavior:'smooth'});
 }
+function updateBreakEven(){
+  const out=$('breakEvenDays'),text=$('breakEvenText');
+  if(!out||!text)return;
+  const monthlyTicket=Math.max(0,+$('ticket').value||0);
+  const dist=Math.max(0,+$('distance').value||0);
+  const variable=Math.max(0,(+$('fuelKm').value||0)+(+$('maintenanceKm').value||0)+(+$('depreciationKm').value||0));
+  const avoidedPerTrainDay=dist*2*variable;
+  if(monthlyTicket<=0){
+    out.textContent='0 Zugtage';
+    text.textContent='Du trägst aktuell keinen eigenen monatlichen Ticketanteil.';
+    return;
+  }
+  if(avoidedPerTrainDay<=0){
+    out.textContent='Noch nicht berechenbar';
+    text.textContent='Hinterlege Entfernung und kilometerabhängige Autokosten, damit Pendly den Break-even berechnen kann.';
+    return;
+  }
+  const days=monthlyTicket/avoidedPerTrainDay;
+  out.textContent=days<1?'unter 1 Zugtag':days.toLocaleString('de-DE',{maximumFractionDigits:1})+' Zugtage';
+  text.textContent='Rechnerisch ist dein eigener Monatsbeitrag nach etwa '+days.toLocaleString('de-DE',{maximumFractionDigits:1})+' Zugtagen durch vermiedene Autokosten ausgeglichen. Das ist eine Monatsbetrachtung und keine Aussage über die langfristige Rentabilität des Tickets.';
+}
+
 function updateScenario(){
   const slider=$('scenarioDays');
   if(!slider)return;
