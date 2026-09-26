@@ -81,6 +81,7 @@ function setAuthMode(mode){
   const recovery=mode==='recovery';
   $('quickTryPanel').style.display='none';
   $('authFields').style.display='block';
+  $('authBox').classList.add('authbox--compact');
   $('tryTab').classList.remove('active');
   $('loginTab').classList.toggle('active',mode==='login');
   $('signupTab').classList.toggle('active',mode==='signup');
@@ -92,6 +93,7 @@ function setAuthMode(mode){
   $('authPassword').placeholder=recovery?'Neues Passwort (mindestens 12 Zeichen)':'Mindestens 12 Zeichen';
   $('forgotPasswordBtn').style.display=mode==='login'?'block':'none';
   $('authEmail').readOnly=recovery;
+  $('authTitle').textContent=recovery?'Passwort zurücksetzen':(mode==='login'?'Willkommen zurück.':'Pendly starten.');
   setAuthMessage(recovery?'Lege jetzt dein neues Passwort fest.':'');
 }
 function showQuickTry(){
@@ -101,6 +103,8 @@ function showQuickTry(){
   $('tryTab').classList.add('active');
   $('authFields').style.display='none';
   $('quickTryPanel').style.display='block';
+  $('authBox').classList.remove('authbox--compact');
+  $('authTitle').innerHTML='Jede Zugfahrt hat einen Wert.<br>Pendly zeigt dir welchen.';
   quickCalc();
 }
 async function requestPasswordReset(){
