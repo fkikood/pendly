@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.46</title>
+<title>Pendly v0.14.47</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -352,6 +352,22 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
     <div class="reviewMetric"><b id="reviewTrips">0</b><span>Autofahrten vermieden</span></div>
     <div class="reviewMetric"><b id="reviewRate">0 %</b><span>mehr Zug statt Auto</span></div>
   </div>
+</section>
+
+<h2>Jahresrückblick</h2>
+<section class="card">
+  <div class="label" id="annualReportTitle">Dieses Jahr</div>
+  <div class="statBig" id="annualReportNet">0,00 €</div>
+  <div class="trend">geschätzte Netto-Ersparnis</div>
+  <div class="reviewGrid" style="margin-top:14px">
+    <div class="reviewMetric"><b id="annualTrain">0</b><span>Zugfahrten</span></div>
+    <div class="reviewMetric"><b id="annualCar">0</b><span>Autofahrten</span></div>
+    <div class="reviewMetric"><b id="annualHome">0</b><span>Homeoffice-Tage</span></div>
+    <div class="reviewMetric"><b id="annualAvoided">0,00 €</b><span>Autokosten vermieden</span></div>
+    <div class="reviewMetric"><b id="annualCo2">0,0 kg</b><span>geschätztes CO₂</span></div>
+    <div class="reviewMetric"><b id="annualRate">0 %</b><span>Zuganteil der Arbeitstage</span></div>
+  </div>
+  <button class="secondary" type="button" onclick="shareAnnualReport()">Jahresbericht teilen</button>
 </section>
 
 <h2>Dein Meilenstein</h2>
@@ -1208,6 +1224,7 @@ function calc(){
   updateScenario();
   updateBreakEven();
   updateEstimateBasis();
+  updateAnnualReport();
 }
 
 function localISODate(date=new Date()){
@@ -1406,6 +1423,41 @@ function applyCommutePattern(){
     ? added+' freie Tage wurden eingetragen. Bereits vorhandene Einträge blieben unverändert.'
     : 'Keine freien Tage im gewählten Zeitraum gefunden. Vorhandene Einträge blieben unverändert.';
   saveCloud();
+}
+
+function updateAnnualReport(){
+  const year=new Date().getFullYear();
+  let train=0,car=0,home=0,avoided=0,co2=0;
+  Object.keys(data.events||{}).forEach(iso=>{
+    if(!iso.startsWith(String(year)+'-'))return;
+    const type=data.events[iso];
+    if(type==='train'){train++;const eco=calculateTripEconomics(iso);avoided+=eco.avoidable;co2+=eco.co2;}
+    else if(type==='car')car++;
+    else if(type==='home')home++;
+  });
+  const ticket=Math.max(0,+$('ticket').value||0)*12;
+  const net=Math.max(0,avoided-ticket);
+  const workdays=train+car+home;
+  $('annualReportTitle').textContent='Jahresrückblick '+year;
+  $('annualReportNet').textContent=eur(net);
+  $('annualTrain').textContent=train;
+  $('annualCar').textContent=car;
+  $('annualHome').textContent=home;
+  $('annualAvoided').textContent=eur(avoided);
+  $('annualCo2').textContent=formatKg(co2);
+  $('annualRate').textContent=(workdays?Math.round(train/workdays*100):0)+' %';
+}
+function annualReportText(){
+  const year=new Date().getFullYear();
+  return 'Pendly-Jahresbericht '+year+'\n\n'+
+    'Netto-Ersparnis: '+$('annualReportNet').textContent+'\n'+
+    'Zugfahrten: '+$('annualTrain').textContent+'\n'+
+    'Autofahrten: '+$('annualCar').textContent+'\n'+
+    'Homeoffice-Tage: '+$('annualHome').textContent+'\n'+
+    'Autokosten vermieden: '+$('annualAvoided').textContent+'\n'+
+    'CO₂ geschätzt eingespart: '+$('annualCo2').textContent+'\n'+
+    'Zuganteil der erfassten Arbeitstage: '+$('annualRate').textContent+'\n\n'+
+    'Pendly · persönliche Schätzung auf Basis deiner hinterlegten Daten.';
 }
 
 function updateScenario(){
