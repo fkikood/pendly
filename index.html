@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.44</title>
+<title>Pendly v0.14.45</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -82,6 +82,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 .onbox h1{font-size:34px;letter-spacing:-1.5px;margin:0 0 8px}.onbox p{color:#6e6e73;line-height:1.45}.field{margin:18px 0}.field label{display:block;font-size:14px;color:#6e6e73;margin-bottom:7px}
 .primary{width:100%;border:0;border-radius:17px;padding:16px;background:#007aff;color:#fff;font-size:17px;font-weight:650;margin-top:8px}
 .goalbar{height:8px;background:#e5e5ea;border-radius:8px;overflow:hidden;margin-top:10px}.goalfill{height:100%;width:0;background:#007aff;border-radius:8px}
+.patternDays{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}.patternDays button{border:0;border-radius:12px;background:#f5f5f7;padding:11px 4px;font-size:13px;color:#6e6e73;font-weight:600}.patternDays button.selected{background:#e8f2ff;color:#007aff}.patternResult{font-size:13px;color:#6e6e73;min-height:18px;margin-top:10px}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.calhead{text-align:center;font-size:12px;color:#8e8e93;padding-bottom:3px}.calday{min-height:58px;border-radius:13px;background:#f5f5f7;text-align:center;padding:7px 3px;font-size:12px;cursor:pointer;user-select:none}.calday b{display:block;font-size:14px;margin-bottom:5px}.calday.train{background:#e8f2ff;color:#007aff}.calday.car{background:#eeeef0}.calday.home{background:#f8f8fa;color:#8e8e93}.calday.off{background:#fbfbfd;color:#8e8e93}.calday.empty{opacity:.55}.calday.today{outline:2px solid #007aff;outline-offset:-2px}.calendarHint{font-size:13px;color:#6e6e73;margin-top:12px;text-align:center}
 
 
@@ -206,6 +207,22 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <button class="action train" onclick="travel('train')">🚆 Zug</button>
 <button class="action car" onclick="travel('car')">🚗 Auto</button>
 </div>
+
+<h2>Dein Pendelmuster</h2>
+<section class="card">
+  <div class="label">Wiederkehrende Tage schnell eintragen</div>
+  <p class="sub" style="margin:8px 0 10px">Wähle die üblichen Arbeitstage. Pendly trägt nur noch freie Tage in den nächsten 6 Wochen ein.</p>
+  <div class="field" style="margin:10px 0"><label>Standard für diese Tage</label>
+    <select id="patternType" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+      <option value="train">🚆 Zug</option><option value="car">🚗 Auto</option><option value="home">🏠 Homeoffice</option><option value="off">🌴 Frei / Urlaub</option>
+    </select>
+  </div>
+  <div class="patternDays" id="patternDays">
+    <button type="button" data-day="1" class="selected">Mo</button><button type="button" data-day="2" class="selected">Di</button><button type="button" data-day="3" class="selected">Mi</button><button type="button" data-day="4" class="selected">Do</button><button type="button" data-day="5" class="selected">Fr</button>
+  </div>
+  <button class="primary" type="button" onclick="applyCommutePattern()">Nächste 6 Wochen eintragen</button>
+  <div class="patternResult" id="patternResult"></div>
+</section>
 
 <h2>Dieser Monat</h2>
 <section class="card">
@@ -1348,6 +1365,34 @@ function updateBreakEven(){
   text.textContent='Rechnerisch ist dein eigener Monatsbeitrag nach etwa '+days.toLocaleString('de-DE',{maximumFractionDigits:1})+' Zugtagen durch vermiedene Autokosten ausgeglichen. Das ist eine Monatsbetrachtung und keine Aussage über die langfristige Rentabilität des Tickets.';
 }
 
+function getSelectedPatternDays(){
+  return [...document.querySelectorAll('#patternDays button.selected')].map(b=>Number(b.dataset.day)).filter(n=>n>=1&&n<=5);
+}
+function applyCommutePattern(){
+  const days=getSelectedPatternDays();
+  const type=$('patternType')?.value||'train';
+  if(!days.length){$('patternResult').textContent='Bitte mindestens einen Wochentag auswählen.';return;}
+  const today=new Date();
+  today.setHours(12,0,0,0);
+  let added=0;
+  for(let i=0;i<42;i++){
+    const d=new Date(today);
+    d.setDate(today.getDate()+i);
+    const weekday=d.getDay();
+    const iso=localISODate(d);
+    if(days.includes(weekday) && !data.events[iso]){
+      data.events[iso]=type;
+      added++;
+    }
+  }
+  data.commutePattern={type,days,updatedAt:new Date().toISOString(),horizonDays:42};
+  calc();
+  $('patternResult').textContent=added
+    ? added+' freie Tage wurden eingetragen. Bereits vorhandene Einträge blieben unverändert.'
+    : 'Keine freien Tage im gewählten Zeitraum gefunden. Vorhandene Einträge blieben unverändert.';
+  saveCloud();
+}
+
 function updateScenario(){
   const slider=$('scenarioDays');
   if(!slider)return;
@@ -1614,6 +1659,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   ['carKm','avoidableKm','fuelKm','maintenanceKm','depreciationKm','ticket','days','distance','insurance','maintenance','tax','parking','goal','annualKm','co2CarKgKm'].forEach(id=>{if($(id)) $(id).addEventListener('input',calc);});
   $('month').textContent=new Date().toLocaleDateString('de-DE',{month:'long',year:'numeric'});
   if($('scenarioDays')) $('scenarioDays').addEventListener('input',updateScenario);
+  document.querySelectorAll('#patternDays button').forEach(btn=>btn.addEventListener('click',()=>{btn.classList.toggle('selected');}));
   updateScenario();
 
   if(!supabaseReady || !sb){
