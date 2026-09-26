@@ -28,6 +28,19 @@ const $=id=>document.getElementById(id);
 const eur=n=>Number(n||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'});
 
 function setAuthMessage(msg){$('authMsg').textContent=msg||'';}
+function saveQuickAndSignup(){
+  quickCalc();
+  localStorage.setItem('pendly-quick-start',JSON.stringify({
+    distance:+$('quickDistance').value||0,
+    carKm:+$('quickCarKm').value||0,
+    ticket:+$('quickTicket').value||0,
+    days:+$('quickDays').value||20
+  }));
+  setAuthMode('signup');
+  $('authEmail').focus();
+  setAuthMessage('Deine Beispielrechnung bleibt in diesem Browser. Erstelle jetzt dein Konto, um Pendly dauerhaft zu nutzen.');
+}
+
 function quickCalc(){
   const dist=Math.max(0,+$('quickDistance').value||0);
   const carKm=Math.max(0,+$('quickCarKm').value||0);
