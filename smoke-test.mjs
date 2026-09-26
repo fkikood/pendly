@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 
 const html=fs.readFileSync('index.html','utf8');
-const scripts=[fs.readFileSync('app.js','utf8')];
+const app=fs.readFileSync('app.js','utf8');
+const scripts=[app];
 if(!scripts.length) throw new Error('app.js fehlt.');
 
 for(const [index,script] of scripts.entries()){
@@ -21,7 +22,7 @@ const required=[
   'quickCalc'
 ];
 for(const name of required){
-  if(!html.includes(name)) throw new Error('Erwartete Funktion/Integration fehlt: '+name);
+  if(!(html.includes(name)||app.includes(name))) throw new Error('Erwartete Funktion/Integration fehlt: '+name);
 }
 
 JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
