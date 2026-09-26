@@ -1,5 +1,12 @@
 # Pendly – Änderungsprotokoll
 
+## v0.14.75
+- Anmeldemaske auf die drei klaren Wege **Anmelden**, **Konto erstellen** und **Demo ausprobieren** reduziert.
+- Demo-Kalkulation ist beim Start standardmäßig ausgeblendet und wird nur bewusst geöffnet.
+- Login-Ansicht wird beim Laden explizit aktiviert.
+- Service-Worker-Cache für die neue Anmeldemaske erneuert.
+
+
 Dieses Protokoll dokumentiert die Entwicklung von Pendly anhand der GitHub-Historie.
 
 > **Hinweis zur Rekonstruktion:** Die Historie wurde nachträglich aus den vorhandenen GitHub-Commits rekonstruiert. Bei einigen älteren Versionssprüngen wurde die Versionsnummer erhöht, ohne dass der Commit selbst eine eindeutige Versionsnummer oder eine vollständige Änderungsbeschreibung enthielt. In diesen Fällen wird nichts erfunden; der Eintrag beschreibt nur den belegbaren Stand.
