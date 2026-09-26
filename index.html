@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.36</title>
+<title>Pendly v0.14.37</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -103,7 +103,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 .statBig{font-size:30px;font-weight:750;letter-spacing:-1px}
 .trend{font-size:13px;color:#6e6e73;margin-top:5px}
 
-.auth{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:30;display:flex;align-items:center;justify-content:center;padding:24px}
+.cloudBoot{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px}.cloudBoot.hidden{display:none}.cloudBootBox{width:min(420px,100%);background:#fff;border-radius:26px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.12);text-align:center}.cloudBootBox b{display:block;font-size:20px;margin-bottom:8px}.cloudBootBox span{display:block;color:#6e6e73;line-height:1.45;font-size:14px}.cloudBootBox button{margin-top:18px;border:0;border-radius:15px;padding:13px 18px;background:#007aff;color:#fff;font-size:15px;font-weight:650}.auth{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:30;display:flex;align-items:center;justify-content:center;padding:24px}
 .auth.hidden{display:none}.authbox{max-width:480px;width:100%;background:#fff;border-radius:30px;padding:30px 24px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
 .authbox h1{font-size:38px;letter-spacing:-1.8px;margin:0 0 8px}.authbox p{color:#6e6e73;line-height:1.45}
 .authswitch{display:flex;gap:8px;background:#f5f5f7;padding:5px;border-radius:14px;margin:20px 0}
@@ -114,12 +114,13 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+<div class="cloudBoot" id="cloudBoot"><div class="cloudBootBox"><b id="cloudBootTitle">Deine Daten werden geladen …</b><span id="cloudBootText">Pendly lädt dein persönliches Profil aus der Cloud.</span><button id="cloudBootRetry" type="button" onclick="location.reload()" style="display:none">Erneut laden</button></div></div>
 
 <div class="auth" id="auth">
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.36</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.37</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -187,7 +188,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.36</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.37</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -381,7 +382,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.36</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.37</b></div>
 </section>
 </div>
 </div>
@@ -415,6 +416,8 @@ data.fuelPrices=data.fuelPrices||{};
 let currentUser=null;
 let cloudDataReady=false;
 let cloudLoadInProgress=false;
+let cloudBootPromise=null;
+let cloudLoadedUserId=null;
 let authMode='login';
 let saveTimer=null;
 let statsPeriod='week';
@@ -528,67 +531,53 @@ function localDataKey(userId){return 'pendly-user-'+userId;}
 async function loadUserData(){
   if(cloudLoadInProgress)return false;
   cloudDataReady=false;
-  if(!currentUser || !supabaseReady || !sb) return false;
+  if(!currentUser || !supabaseReady || !sb)return false;
   cloudLoadInProgress=true;
-  const localKey=localDataKey(currentUser.id);
-  const settingsKey='pendly-settings-'+currentUser.id;
+  const userId=currentUser.id;
+  const localKey=localDataKey(userId);
+  const settingsKey='pendly-settings-'+userId;
   let hadCloudData=false;
   let localSettings=null;
-
-  const cached=localStorage.getItem(localKey);
-  if(cached){try{data={...data,...JSON.parse(cached)};}catch{}}
-  const cachedSettings=localStorage.getItem(settingsKey);
-  if(cachedSettings){try{localSettings=JSON.parse(cachedSettings); applySettings(localSettings);}catch{}}
-
-  const {data:row,error}=await sb.from('user_data').select('data,settings').eq('user_id',currentUser.id).maybeSingle();
-  if(error){
-    console.warn('Pendly-Ladefehler:',error);
-    // Never allow calc() to overwrite a valid cloud profile when the initial
-    // read failed. A temporary network/RLS/auth error must be read-only.
-    cloudLoadInProgress=false;
-    return false;
-  }
-  if(!row){
-    // A signed-in user without a row is a new profile. Do not treat this as
-    // loaded data: otherwise calc() could save the HTML defaults as a new row.
-    cloudLoadInProgress=false;
-    return false;
-  }
-  if(row?.data && typeof row.data==='object'){
-    data={...data,...row.data};
-    data.events=(row.data.events && typeof row.data.events==='object')?row.data.events:{};
-    data.fuelPrices=(row.data.fuelPrices && typeof row.data.fuelPrices==='object')?row.data.fuelPrices:{};
-    hadCloudData=true;
-  }
-
-  // Prefer a complete cloud profile. If an old/empty row contains only zeros,
-  // keep the locally saved onboarding profile instead of wiping the calculation.
-  const cloudSettings=row?.settings;
-  const cloudHasProfile=cloudSettings && (Number(cloudSettings.carKm)>0 || Number(cloudSettings.avoidableKm)>0 || Number(cloudSettings.annualKm)>0);
-  const localHasProfile=localSettings && (Number(localSettings.carKm)>0 || Number(localSettings.avoidableKm)>0 || Number(localSettings.annualKm)>0);
-  if(cloudHasProfile){
-    const merged={...(localSettings||{}),...(cloudSettings||{})};
-    // Older cloud profiles did not contain the component values. Keep any
-    // locally cached values instead of overwriting them with zeros.
-    for(const id of ['distance','fuelKm','maintenanceKm','depreciationKm','avoidableKm','ticket','days','goal']){
-      const lv=Number(localSettings?.[id]??0);
-      const cv=Number(cloudSettings?.[id]??0);
-      if(lv>0 && cv<=0) merged[id]=localSettings[id];
+  try{
+    const cached=localStorage.getItem(localKey);
+    if(cached){try{data={...data,...JSON.parse(cached)};}catch{}}
+    const cachedSettings=localStorage.getItem(settingsKey);
+    if(cachedSettings){try{localSettings=JSON.parse(cachedSettings);applySettings(localSettings);}catch{}}
+    const {data:row,error}=await sb.from('user_data').select('data,settings').eq('user_id',userId).maybeSingle();
+    if(error)throw error;
+    if(!row)throw new Error('Für dieses Konto wurde kein Pendly-Profil gefunden.');
+    if(row.data && typeof row.data==='object'){
+      data={...data,...row.data};
+      data.events=(row.data.events && typeof row.data.events==='object')?row.data.events:{};
+      data.fuelPrices=(row.data.fuelPrices && typeof row.data.fuelPrices==='object')?row.data.fuelPrices:{};
+      hadCloudData=true;
     }
-    applySettings(merged);
-    hadCloudData=true;
-  }else if(localHasProfile){
-    applySettings(localSettings);
-  }
-
-  syncTripCounters();
-  repairCostBreakdown();
-  localStorage.setItem(localKey,JSON.stringify(data));
-  localStorage.setItem(settingsKey,JSON.stringify(getSettings()));
-  cloudDataReady=true;
-  cloudLoadInProgress=false;
-  return hadCloudData || !!localHasProfile;
+    const cloudSettings=row.settings;
+    const cloudHasProfile=cloudSettings && (Number(cloudSettings.carKm)>0 || Number(cloudSettings.avoidableKm)>0 || Number(cloudSettings.annualKm)>0);
+    const localHasProfile=localSettings && (Number(localSettings.carKm)>0 || Number(localSettings.avoidableKm)>0 || Number(localSettings.annualKm)>0);
+    if(cloudHasProfile){
+      const merged={...(localSettings||{}),...(cloudSettings||{})};
+      for(const id of ['distance','fuelKm','maintenanceKm','depreciationKm','avoidableKm','ticket','days','goal']){
+        const lv=Number(localSettings?.[id]??0);
+        const cv=Number(cloudSettings?.[id]??0);
+        if(lv>0 && cv<=0)merged[id]=localSettings[id];
+      }
+      applySettings(merged);
+      hadCloudData=true;
+    }else if(localHasProfile)applySettings(localSettings);
+    syncTripCounters();
+    repairCostBreakdown();
+    localStorage.setItem(localKey,JSON.stringify(data));
+    localStorage.setItem(settingsKey,JSON.stringify(getSettings()));
+    cloudDataReady=true;
+    return hadCloudData||!!localHasProfile;
+  }catch(e){
+    console.warn('Pendly-Ladefehler:',e);
+    cloudDataReady=false;
+    return false;
+  }finally{cloudLoadInProgress=false;}
 }
+
 
 function getSettings(){
   return {
@@ -1485,74 +1474,81 @@ document.addEventListener('DOMContentLoaded',async()=>{
     return;
   }
 
-  // Auth first: subscribe before reading the session so INITIAL_SESSION cannot be missed.
-  // Supabase initializes its auth client automatically and emits INITIAL_SESSION.
-  $('auth').classList.remove('hidden');
-  $('onboard').classList.add('hidden');
-
-  async function handleAuthenticatedUser(user){
-    if(!user)return;
+  function showCloudBoot(message,failed=false){
+    const box=$('cloudBoot');
+    if(!box)return;
+    $('cloudBootTitle').textContent=failed?'Deine Daten konnten nicht geladen werden.':'Deine Daten werden geladen …';
+    $('cloudBootText').textContent=message||'Pendly lädt dein persönliches Profil aus der Cloud.';
+    $('cloudBootRetry').style.display=failed?'inline-block':'none';
+    box.classList.remove('hidden');
+  }
+  function hideCloudBoot(){const box=$('cloudBoot');if(box)box.classList.add('hidden')}
+  async function bootAuthenticatedUser(user){
+    if(!user)return false;
     const userId=user.id;
-    if(!currentUser || currentUser.id!==userId)return;
-    $('auth').classList.add('hidden');
-    updateAccountLabel();
-    let hasCloudData=false;
-    for(let attempt=0;attempt<3 && currentUser?.id===userId && !cloudDataReady;attempt++){
-      hasCloudData=await loadUserData();
-      if(!cloudDataReady && attempt<2) await new Promise(resolve=>setTimeout(resolve,500));
-    }
-    // Only calculate after a successful cloud read. If the read failed, keep
-    // the UI read-only instead of displaying/saving zero-valued defaults.
-    if(currentUser?.id!==userId)return;
-    if(cloudDataReady){
-      const onboardKey='pendly-onboard-'+userId;
-      if(hasCloudData || localStorage.getItem(onboardKey)) $('onboard').classList.add('hidden');
-      calc();
-    }else{
-      $('onboard').classList.add('hidden');
+    if(cloudLoadedUserId===userId&&cloudDataReady){hideCloudBoot();return true}
+    if(cloudBootPromise)return cloudBootPromise;
+    cloudBootPromise=(async()=>{
+      showCloudBoot();
       $('auth').classList.add('hidden');
-    }
-  }
-
-  try{
-    sb.auth.onAuthStateChange((_event,session)=>{
-      currentUser=session?.user||null;
-      cloudDataReady=false;
-      cloudLoadInProgress=false;
-      if(currentUser){
-        // Never await Supabase calls inside onAuthStateChange; defer them.
-        setTimeout(()=>handleAuthenticatedUser(currentUser).catch(e=>console.warn('Pendly-Laden:',e)),0);
-      }else{
-        $('auth').classList.remove('hidden');
-        $('onboard').classList.add('hidden');
+      $('onboard').classList.add('hidden');
+      let ok=false;
+      for(let attempt=0;attempt<3&&currentUser?.id===userId&&!ok;attempt++){
+        ok=await loadUserData();
+        if(!ok&&attempt<2)await new Promise(resolve=>setTimeout(resolve,400));
       }
-    });
-  }catch(e){
-    currentUser=null;
-    $('auth').classList.remove('hidden');
-    $('onboard').classList.add('hidden');
-    setAuthMessage('Anmeldedienst konnte nicht gestartet werden. Bitte erneut laden.');
+      if(currentUser?.id!==userId)return false;
+      if(!ok||!cloudDataReady){
+        showCloudBoot('Die Verbindung zur Cloud funktioniert, aber dein Profil konnte gerade nicht vollständig gelesen werden. Deine gespeicherten Daten wurden dabei nicht verändert.',true);
+        return false;
+      }
+      cloudLoadedUserId=userId;
+      updateAccountLabel();
+      $('auth').classList.add('hidden');
+      $('onboard').classList.add('hidden');
+      calc();
+      hideCloudBoot();
+      return true;
+    })().catch(e=>{
+      console.warn('Pendly-Laden:',e);
+      cloudDataReady=false;
+      showCloudBoot('Beim Laden deines Pendly-Profils ist ein Fehler aufgetreten. Deine gespeicherten Daten wurden dabei nicht verändert.',true);
+      return false;
+    }).finally(()=>{cloudBootPromise=null});
+    return cloudBootPromise;
   }
-
-  // Also resolve the current session once. This covers the case where the
-  // initial auth event was emitted before the subscription became active.
+  try{
+    sb.auth.onAuthStateChange((event,session)=>{
+      const nextUser=session?.user||null;
+      currentUser=nextUser;
+      if(event==='SIGNED_OUT'||!nextUser){
+        cloudDataReady=false;cloudLoadedUserId=null;cloudBootPromise=null;
+        $('auth').classList.remove('hidden');$('onboard').classList.add('hidden');hideCloudBoot();return;
+      }
+      if(event==='TOKEN_REFRESHED'&&cloudLoadedUserId===nextUser.id&&cloudDataReady){updateAccountLabel();return}
+      setTimeout(()=>bootAuthenticatedUser(nextUser),0);
+    });
+  }catch(e){currentUser=null;showCloudBoot('Der Anmeldedienst konnte nicht gestartet werden. Bitte lade Pendly erneut.',true)}
   try{
     const {data:sessionData,error:sessionError}=await sb.auth.getSession();
-    if(sessionError) throw sessionError;
+    if(sessionError)throw sessionError;
     if(sessionData?.session?.user){
       currentUser=sessionData.session.user;
-      setTimeout(()=>handleAuthenticatedUser(currentUser).catch(e=>console.warn('Pendly-Laden:',e)),0);
+      setTimeout(()=>bootAuthenticatedUser(sessionData.session.user),0);
+    }else{
+      hideCloudBoot();$('auth').classList.remove('hidden');$('onboard').classList.add('hidden');
     }
   }catch(e){
     console.warn('Pendly-Sitzung:',e);
+    showCloudBoot('Die Sitzung konnte nicht geladen werden. Bitte lade Pendly erneut.',true);
   }
+
 
   if(Math.abs((+$('carKm').value||0)-0.35)<0.0001 && !data.fgKmCost){
     const annual=+$('annualKm').value||12500;
     const fixed=(+$('insurance').value||0)*12+(+$('maintenance').value||0)*12;
     if(fixed>0) $('carKm').value=(fixed/annual).toFixed(3);
   }
-  calc();
 });
 
 // Render the calendar immediately after the page DOM is available. This keeps the calendar visible even while auth/cloud data is loading.
