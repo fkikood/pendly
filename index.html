@@ -1115,6 +1115,37 @@ function updateMonthlyReview(){
   $('milestoneTitle').textContent=st.train>=100?'🏆 100 Autofahrten vermieden':st.train>=50?'🏅 50 Autofahrten vermieden':st.train>=25?'🌟 25 Autofahrten vermieden':st.train>=10?'🌱 10 Autofahrten vermieden':'🌱 Erster Schritt';
   $('milestoneText').textContent=st.train>=10?'Du bist auf einem starken Weg.':'Noch '+Math.max(0,10-st.train)+' bis zum ersten Meilenstein.';
 }
+async function syncCommuteDaySnapshot(day){
+  if(!currentUser||!supabaseReady||!sb||!cloudDataReady)return false;
+  const type=data.events?.[day];
+  try{
+    if(!type){
+      const {error}=await sb.from('commute_days').delete().eq('user_id',currentUser.id).eq('travel_date',day);
+      if(error)throw error;
+      return true;
+    }
+    const eco=type==='train'?calculateTripEconomics(day):{avoidable:0,ticket:0,net:0,co2:0};
+    const fp=data.fuelPrices?.[day];
+    const payload={
+      user_id:currentUser.id,
+      travel_date:day,
+      mode:type,
+      distance_km:Math.max(0,+$('distance').value||0),
+      fuel_price:fp&&Number(fp.price)>0?Number(fp.price):null,
+      fuel_type:fp?.type||null,
+      avoidable_cost_snapshot:Number(eco.avoidable||0).toFixed(2),
+      ticket_cost_snapshot:Number(eco.ticket||0).toFixed(2),
+      net_saving_snapshot:Number(eco.net||0).toFixed(2),
+      co2_saving_snapshot:Number(eco.co2||0).toFixed(3),
+      snapshot_source:fp?'pendly-day-price':'pendly-current-settings',
+      updated_at:new Date().toISOString()
+    };
+    const {error}=await sb.from('commute_days').upsert(payload,{onConflict:'user_id,travel_date'});
+    if(error)throw error;
+    return true;
+  }catch(e){console.warn('Pendly-Historien-Snapshot:',e);return false;}
+}
+
 function calculateTripEconomics(day){
   const type=data.events?.[day];
   if(type!=='train') return {fuel:0,maintenance:0,depreciation:0,avoidable:0,ticket:0,net:0,co2:0};
@@ -1278,6 +1309,7 @@ async function travel(type){
   else if(type==='car')data.car++;
   if(type==='train' && !data.fuelPrices?.[day]) await ensureFuelPriceForToday();
   calc();
+  await syncCommuteDaySnapshot(day);
 
   let amount=type==='train'
     ? calculateTripEconomics(day).net
@@ -1353,14 +1385,17 @@ async function setDay(type){
     await fetchFuelPrice(false,day);
     calc();
   }
+  await syncCommuteDaySnapshot(day);
 }
-function clearDay(){
+async function clearDay(){
   if(!editingDay)return;
-  const old=data.events[editingDay];
+  const day=editingDay;
+  const old=data.events[day];
   if(old==='train')data.train=Math.max(0,data.train-1);
   if(old==='car')data.car=Math.max(0,data.car-1);
-  delete data.events[editingDay];
+  delete data.events[day];
   closeEditor();calc();
+  await syncCommuteDaySnapshot(day);
 }
 
 
