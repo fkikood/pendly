@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.38</title>
+<title>Pendly v0.14.39</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -131,6 +131,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
     <div class="field"><label>E-Mail-Adresse</label><input id="authEmail" type="email" autocomplete="email" placeholder="du@beispiel.de"></div>
     <div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 6 Zeichen"></div>
     <button class="primary" id="authSubmit" type="button" onclick="submitAuth()">Anmelden</button>
+    <button class="secondary" id="forgotPasswordBtn" type="button" onclick="requestPasswordReset()" style="margin-top:10px">Passwort vergessen?</button>
     <div class="authmsg" id="authMsg"></div>
   </div>
 </div>
@@ -430,14 +431,33 @@ const eur=n=>Number(n||0).toLocaleString('de-DE',{style:'currency',currency:'EUR
 function setAuthMessage(msg){$('authMsg').textContent=msg||'';}
 function setAuthMode(mode){
   authMode=mode;
+  const recovery=mode==='recovery';
   $('loginTab').classList.toggle('active',mode==='login');
   $('signupTab').classList.toggle('active',mode==='signup');
-  $('authSubmit').textContent=mode==='login'?'Anmelden':'Konto erstellen';
-  $('authPassword').autocomplete=mode==='login'?'current-password':'new-password';
-  setAuthMessage('');
+  $('loginTab').style.display=recovery?'none':'block';
+  $('signupTab').style.display=recovery?'none':'block';
+  $('authSubmit').textContent=recovery?'Neues Passwort speichern':(mode==='login'?'Anmelden':'Konto erstellen');
+  $('authPassword').autocomplete=recovery?'new-password':(mode==='login'?'current-password':'new-password');
+  $('authPassword').placeholder=recovery?'Neues Passwort (mindestens 6 Zeichen)':'Mindestens 6 Zeichen';
+  $('forgotPasswordBtn').style.display=mode==='login'?'block':'none';
+  $('authEmail').readOnly=recovery;
+  setAuthMessage(recovery?'Lege jetzt dein neues Passwort fest.':'');
+}
+async function requestPasswordReset(){
+  if(!sb){setAuthMessage('Pendly konnte den Anmeldedienst nicht laden.');return;}
+  const email=$('authEmail').value.trim();
+  if(!email){setAuthMessage('Bitte zuerst deine E-Mail-Adresse eingeben.');return;}
+  $('forgotPasswordBtn').disabled=true;
+  setAuthMessage('E-Mail zum Zurücksetzen wird gesendet …');
+  try{
+    const redirectTo=window.location.origin+'/pendly/';
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+    if(error)throw error;
+    setAuthMessage('Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde eine Nachricht zum Zurücksetzen gesendet.');
+  }catch(e){setAuthMessage(e.message||'Die E-Mail zum Zurücksetzen konnte nicht gesendet werden.');}
+  finally{$('forgotPasswordBtn').disabled=false;}
 }
 async function submitAuth(){
-  setAuthMessage('Anmeldung wird geprüft …');
   if(!supabaseReady || !sb){
     setAuthMessage('Pendly konnte den Anmeldedienst nicht laden. Bitte die Seite einmal neu laden.');
     return;
@@ -447,9 +467,15 @@ async function submitAuth(){
   if(!email || !password){setAuthMessage('Bitte E-Mail und Passwort eingeben.');return;}
   if(password.length<6){setAuthMessage('Das Passwort muss mindestens 6 Zeichen haben.');return;}
   $('authSubmit').disabled=true;
-  setAuthMessage(authMode==='login'?'Anmeldung …':'Konto wird erstellt …');
+  setAuthMessage(authMode==='recovery'?'Passwort wird gespeichert …':(authMode==='login'?'Anmeldung …':'Konto wird erstellt …'));
   try{
-    if(authMode==='login'){
+    if(authMode==='recovery'){
+      const {error}=await sb.auth.updateUser({password});
+      if(error)throw error;
+      setAuthMessage('Passwort erfolgreich geändert. Du kannst Pendly jetzt verwenden.');
+      setAuthMode('login');
+      $('authPassword').value='';
+    }else if(authMode==='login'){
       const {error}=await sb.auth.signInWithPassword({email,password});
       if(error) throw error;
       setAuthMessage('');
@@ -1520,6 +1546,13 @@ document.addEventListener('DOMContentLoaded',async()=>{
   try{
     sb.auth.onAuthStateChange((event,session)=>{
       const nextUser=session?.user||null;
+      if(event==='PASSWORD_RECOVERY'){
+        currentUser=nextUser;
+        $('auth').classList.remove('hidden');
+        $('onboard').classList.add('hidden');
+        setAuthMode('recovery');
+        return;
+      }
       currentUser=nextUser;
       if(event==='SIGNED_OUT'||!nextUser){
         cloudDataReady=false;cloudLoadedUserId=null;cloudBootPromise=null;
@@ -1558,6 +1591,7 @@ try{
 }catch(e){console.warn('Pendly-Kalender-Initialisierung:',e);}
 
 window.setAuthMode=setAuthMode;
+window.requestPasswordReset=requestPasswordReset;
 window.submitAuth=submitAuth;
 window.nextQ=nextQ;
 window.nextQ2=nextQ2;
