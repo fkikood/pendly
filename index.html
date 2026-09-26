@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.45</title>
+<title>Pendly v0.14.46</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -153,7 +153,9 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <option value="7500">5.000–10.000 km</option><option value="12500">10.000–15.000 km</option><option value="17500">15.000–20.000 km</option><option value="22500">20.000–25.000 km</option><option value="30000">mehr als 25.000 km</option></select></div>
 <div class="field"><label id="oConsumptionLabel">Verbrauch (pro 100 km)</label><input id="oConsumption" type="number" step=".1" value="6.5"></div>
 <div class="field" id="fuelField"><label id="fuelLabel">Kraftstoffpreis (€ / Liter)</label><input id="oFuel" type="number" step=".01" value="1.75"></div>
-<button class="primary" onclick="nextQ2()">Weiter</button>
+<button class="primary" onclick="nextQ2()">Präzise berechnen</button>
+<button class="secondary" type="button" onclick="quickStartOnboarding()">Schnellstart mit Standardwerten</button>
+<p class="sub" style="margin-top:10px">Schnellstart nutzt Standardwerte für Versicherung, Wartung, Steuer, Parken und Ticket. Du kannst alles später anpassen.</p>
 </div>
 <div id="q3" style="display:none">
 <h1>Fast geschafft.</h1>
@@ -814,6 +816,19 @@ function updateFuelUI(){
   $('fuelField').style.display=elec?'none':'block';
   $('oConsumption').value=elec?'18':'6.5';
   $('oConsumptionLabel').textContent=elec?'Verbrauch (kWh / 100 km)':'Verbrauch (Liter / 100 km)';
+}
+
+function quickStartOnboarding(){
+  $('oInsurance').value=90;
+  $('oMaintenance').value=70;
+  $('oTax').value=180;
+  $('oParking').value=0;
+  $('oTicketMode').value='employer_full';
+  $('oTicketTotal').value=63;
+  $('oTicketOwn').value=0;
+  updateTicketUI();
+  showResult();
+  $('q3').style.display='none';
 }
 
 function nextQ(){
