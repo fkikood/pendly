@@ -99,6 +99,29 @@ async function submitAuth(){
   }catch(e){setAuthMessage(e.message||'Anmeldung fehlgeschlagen.');}
   finally{$('authSubmit').disabled=false;}
 }
+async function deleteAccount(){
+  if(!currentUser||!sb)return;
+  const ok=confirm('Möchtest du dein Pendly-Konto wirklich dauerhaft löschen? Dein Konto sowie deine gespeicherten Pendly-Daten werden dabei gelöscht. Dieser Schritt kann nicht rückgängig gemacht werden.');
+  if(!ok)return;
+  $('profileHint').textContent='Konto wird gelöscht …';
+  try{
+    const userId=currentUser.id;
+    const {error}=await sb.rpc('delete_my_account');
+    if(error)throw error;
+    localStorage.removeItem(localDataKey(userId));
+    localStorage.removeItem('pendly-settings-'+userId);
+    localStorage.removeItem('pendly-onboard-'+userId);
+    currentUser=null;
+    closeAccount();
+    $('auth').classList.remove('hidden');
+    $('onboard').classList.add('hidden');
+    $('accountBtn').textContent='Konto';
+    setAuthMessage('Dein Pendly-Konto wurde gelöscht.');
+  }catch(e){
+    $('profileHint').textContent=e.message||'Das Konto konnte nicht gelöscht werden.';
+  }
+}
+
 async function signOut(){
   await sb.auth.signOut();
   currentUser=null;
