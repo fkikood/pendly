@@ -133,7 +133,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.56</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.57</div>
     </div>
     <h1>Jede Zugfahrt hat einen Wert.<br>Pendly zeigt dir welchen.</h1>
     <p>Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
@@ -218,7 +218,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.56</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.57</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -338,6 +338,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <section class="card">
   <div class="label">Tatsächliche Autokosten statt Schätzung</div>
   <p class="sub" style="margin:8px 0 16px">Lade deinen Finanzguru-Excel-Export hoch. Pendly sucht darin automatisch nach Tanken, Kfz-Steuer, Parken, Werkstatt/Service, Kfz-Versicherung und Leasing.</p>
+<p class="sub" style="margin:-8px 0 14px">🔒 <b>Nur lokal verarbeitet:</b> Die Originaldatei bleibt auf deinem Gerät und wird nicht zu Pendly hochgeladen.</p>
   <input id="fgFile" type="file" accept=".xlsx,.xls,.csv" style="font-size:14px">
   <div id="fgStatus" class="sub" style="margin-top:12px"></div>
   <div id="fgResult" style="display:none;margin-top:14px">
@@ -473,7 +474,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.56</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.57</b></div>
 </section>
 </div>
 </div>
@@ -1049,10 +1050,11 @@ async function importFinancialGuru(file){
     const km=+$('annualKm').value||+$('oAnnual').value||12500;
     data.fgAnnual=annual;
     data.fgKmCost=annual/km;
+    data.fgImportedAt=new Date().toISOString();
     $('fgAnnual').textContent=eur(annual);
     $('fgKmCost').textContent=eur(data.fgKmCost);
     $('fgResult').style.display='block';
-    $('fgStatus').textContent=`${result.hits} passende Buchungen erkannt.`;
+    $('fgStatus').textContent=`${result.hits} passende Buchungen erkannt. Originaldatei bleibt lokal.`;
     localStorage.setItem(currentUser?localDataKey(currentUser.id):key,JSON.stringify(data));
     scheduleCloudSave();
   }catch(e){
