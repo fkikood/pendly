@@ -1,0 +1,106 @@
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
+.app{max-width:520px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 20px calc(90px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.logo{font-size:29px;font-weight:700;letter-spacing:-1px}.month{font-size:14px;color:#6e6e73}
+.card{background:rgba(255,255,255,.86);border:1px solid rgba(0,0,0,.06);border-radius:26px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.savingCard{background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(245,248,255,.96));border:1px solid rgba(0,122,255,.09);box-shadow:0 12px 38px rgba(0,0,0,.07)}
+.appVersion{font-size:10px;font-weight:400;color:#8e8e93;opacity:.7;letter-spacing:0}.savingCard .saving{font-size:58px;margin-bottom:10px}.savingSecondary{display:flex;align-items:baseline;gap:7px;padding-top:12px;margin-bottom:2px;border-top:1px solid rgba(0,0,0,.07);font-size:13px;color:#6e6e73}.savingSecondary b{font-size:18px;color:#3a3a3c}.savingMessage{font-size:14px;color:#3a3a3c;margin-top:-2px;margin-bottom:16px}.savingGoal{font-size:12px;color:#6e6e73;margin-top:15px}.savingGoalTop{display:flex;justify-content:space-between;gap:10px}.savingGoalBar{height:5px;background:#e5e5ea;border-radius:99px;overflow:hidden;margin-top:7px}.savingGoalFill{height:100%;width:0;background:#007aff;border-radius:99px;transition:width .3s ease}
+.label{color:#6e6e73;font-size:15px}.saving{font-size:56px;letter-spacing:-3px;font-weight:700;margin:7px 0 20px}.sub{font-size:14px;color:#6e6e73}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.stat{background:#f5f5f7;border-radius:18px;padding:17px}.stat b{display:block;font-size:24px;margin-bottom:4px}.stat span{font-size:13px;color:#6e6e73}
+h2{font-size:22px;letter-spacing:-.5px;margin:30px 2px 14px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.action{border:0;border-radius:20px;padding:19px 10px;background:#fff;box-shadow:0 5px 20px rgba(0,0,0,.07);font-size:16px;font-weight:600;cursor:pointer;color:#1d1d1f}.action:active{transform:scale(.98)}.action.selected.train{color:#007aff;background:#e8f2ff}.action.selected.car{color:#1d1d1f;background:#eeeef0}
+.row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid #e5e5ea}.row:last-child{border:0}.row small{display:block;color:#6e6e73;margin-top:3px}
+input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff}
+.bottom{
+  position:fixed;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  width:min(480px,calc(100% - 24px));
+  background:rgba(255,255,255,.62);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,.72);
+  border-radius:24px;
+  box-shadow:0 14px 40px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.8);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:5px;
+  padding:6px;
+  z-index:20;
+}
+.bottom button{
+  min-width:0;
+  border:0;
+  background:transparent;
+  color:#6e6e73;
+  border-radius:18px;
+  padding:9px 4px 8px;
+  font-size:11px;
+  line-height:1.1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  cursor:pointer;
+  transition:background .2s ease,color .2s ease,transform .2s ease;
+}
+.bottom button:active{transform:scale(.97)}
+.bottom button.active{
+  color:#007aff;
+  background:rgba(255,255,255,.68);
+  box-shadow:0 3px 12px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.85);
+  font-weight:650;
+}
+.bottom .navIcon{
+  font-size:19px;
+  line-height:18px;
+  height:19px;
+  display:block;
+}
+.bottom .navLabel{
+  margin:0;
+  white-space:nowrap;
+}
+@media (prefers-reduced-transparency: reduce){
+  .bottom{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(10px);background:#1d1d1f;color:#fff;padding:12px 18px;border-radius:18px;opacity:0;transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%)}
+
+.onboard{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:5;display:flex;align-items:center;justify-content:center;padding:24px}
+.onboard.hidden{display:none}.onbox{max-width:480px;width:100%;background:#fff;border-radius:30px;padding:30px 24px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.onbox h1{font-size:34px;letter-spacing:-1.5px;margin:0 0 8px}.onbox p{color:#6e6e73;line-height:1.45}.field{margin:18px 0}.field label{display:block;font-size:14px;color:#6e6e73;margin-bottom:7px}
+.primary{width:100%;border:0;border-radius:17px;padding:16px;background:#007aff;color:#fff;font-size:17px;font-weight:650;margin-top:8px}
+.goalbar{height:8px;background:#e5e5ea;border-radius:8px;overflow:hidden;margin-top:10px}.goalfill{height:100%;width:0;background:#007aff;border-radius:8px}
+.patternDays{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}.patternDays button{border:0;border-radius:12px;background:#f5f5f7;padding:11px 4px;font-size:13px;color:#6e6e73;font-weight:600}.patternDays button.selected{background:#e8f2ff;color:#007aff}.patternResult{font-size:13px;color:#6e6e73;min-height:18px;margin-top:10px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.calhead{text-align:center;font-size:12px;color:#8e8e93;padding-bottom:3px}.calday{min-height:58px;border-radius:13px;background:#f5f5f7;text-align:center;padding:7px 3px;font-size:12px;cursor:pointer;user-select:none}.calday b{display:block;font-size:14px;margin-bottom:5px}.calday.train{background:#e8f2ff;color:#007aff}.calday.car{background:#eeeef0}.calday.home{background:#f8f8fa;color:#8e8e93}.calday.off{background:#fbfbfd;color:#8e8e93}.calday.empty{opacity:.55}.calday.today{outline:2px solid #007aff;outline-offset:-2px}.calendarHint{font-size:13px;color:#6e6e73;margin-top:12px;text-align:center}
+
+
+.progressHero{margin-top:18px}
+.progressHero .heroTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.progressHero h3{font-size:20px;letter-spacing:-.5px;margin:8px 0 5px}
+.progressHero .heroNumber{font-size:34px;font-weight:750;letter-spacing:-1.5px;margin-top:4px}
+.progressHero .heroMeta{font-size:13px;color:#6e6e73}
+.co2{margin-top:16px;background:#f4f8f5;border-radius:18px;padding:16px}
+.co2 b{font-size:25px}.co2 small{display:block;color:#6e6e73;margin-top:3px}
+.badge{display:inline-flex;align-items:center;gap:5px;background:#f2f7ff;color:#007aff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:650}
+.review{background:linear-gradient(135deg,#fff,#f5f7ff);border:1px solid rgba(0,0,0,.05)}
+.review .reviewGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.reviewMetric{background:rgba(245,245,247,.8);border-radius:16px;padding:14px}
+.reviewMetric b{display:block;font-size:22px}.reviewMetric span{font-size:12px;color:#6e6e73}
+.periods{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#f5f5f7;padding:5px;border-radius:14px}
+.periods button{border:0;background:transparent;border-radius:10px;padding:10px 4px;font-size:14px;color:#6e6e73}
+.periods button.active{background:#fff;color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,.08);font-weight:650}
+.statBig{font-size:30px;font-weight:750;letter-spacing:-1px}
+.trend{font-size:13px;color:#6e6e73;margin-top:5px}
+
+.cloudBoot{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px}.cloudBoot.hidden{display:none}.cloudBootBox{width:min(420px,100%);background:#fff;border-radius:26px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.12);text-align:center}.cloudBootBox b{display:block;font-size:20px;margin-bottom:8px}.cloudBootBox span{display:block;color:#6e6e73;line-height:1.45;font-size:14px}.cloudBootBox button{margin-top:18px;border:0;border-radius:15px;padding:13px 18px;background:#007aff;color:#fff;font-size:15px;font-weight:650}.auth{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:30;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth.hidden{display:none}.authbox{max-width:480px;width:100%;background:#fff;border-radius:30px;padding:30px 24px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.authbox h1{font-size:38px;letter-spacing:-1.8px;margin:0 0 8px}.authbox p{color:#6e6e73;line-height:1.45}
+.authswitch{display:flex;gap:8px;background:#f5f5f7;padding:5px;border-radius:14px;margin:20px 0}
+.authswitch button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;font-size:15px}.authswitch .active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);font-weight:600}
+.authmsg{font-size:14px;color:#6e6e73;min-height:20px;margin-top:12px}.account{font-size:13px;color:#6e6e73;cursor:pointer}
+
+.fuelPriceModal{position:fixed;inset:0;background:rgba(245,245,247,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:45;display:flex;align-items:flex-start;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto}.fuelPriceModal.hidden{display:none}.fuelPriceBox{width:min(520px,100%);background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.16)}.fuelPriceHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.fuelPriceHead h2{margin:0;font-size:24px}.fuelPriceClose{width:36px;height:36px;border:0;border-radius:50%;background:#f5f5f7;font-size:22px;color:#6e6e73;cursor:pointer}.fuelPriceList{display:grid;gap:8px}.fuelPriceItem{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:13px 14px;background:#f5f5f7;border-radius:16px}.fuelPriceItem b{font-size:15px}.fuelPriceValue{text-align:right;font-size:16px;font-weight:700}.fuelPriceSource{display:block;margin-top:3px;font-size:11px;color:#6e6e73;line-height:1.25}.fuelPriceApprox{color:#9a6700}.fuelPriceFallback{color:#c62828}.profileModal{position:fixed;inset:0;background:rgba(245,245,247,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:40;display:flex;align-items:flex-start;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.profileModal.hidden{display:none}.profileBox{width:min(520px,100%);max-height:none;overflow:visible;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.16)}.profileHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.profileHead h2{margin:0;font-size:28px}.profileClose{width:36px;height:36px;border:0;border-radius:50%;background:#f5f5f7;font-size:22px;color:#6e6e73;cursor:pointer}.profileSection{margin-top:22px}.profileSection h3{font-size:17px;margin:0 0 10px}.profileGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.profileActions{display:grid;gap:10px;margin-top:18px}.secondary{width:100%;border:0;border-radius:17px;padding:15px;background:#f5f5f7;color:#1d1d1f;font-size:16px;font-weight:650}.danger{width:100%;border:0;border-radius:17px;padding:15px;background:#fff0f0;color:#c62828;font-size:16px;font-weight:650}.profileHint{font-size:13px;color:#6e6e73;min-height:18px;margin-top:9px}@media(max-width:430px){.profileGrid{grid-template-columns:1fr}}
