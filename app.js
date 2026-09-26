@@ -606,7 +606,22 @@ function parseFinancialGuru(rows){
   }
   return {total,hits};
 }
+let xlsxLoadPromise=null;
+function loadXlsxLibrary(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  if(xlsxLoadPromise)return xlsxLoadPromise;
+  xlsxLoadPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    script.onload=()=>window.XLSX?resolve(window.XLSX):reject(new Error('XLSX konnte nicht geladen werden.'));
+    script.onerror=()=>reject(new Error('Die Excel-Bibliothek konnte nicht geladen werden.'));
+    document.head.appendChild(script);
+  });
+  return xlsxLoadPromise;
+}
+
 async function importFinancialGuru(file){
+  try{await loadXlsxLibrary();}catch(e){$('fgStatus').textContent=e.message;return;}
   $('fgStatus').textContent='Datei wird analysiert …';
   try{
     const buf=await file.arrayBuffer();
