@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 
 const html=fs.readFileSync('index.html','utf8');
-const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
-if(!scripts.length) throw new Error('Kein Inline-JavaScript in index.html gefunden.');
+const scripts=[fs.readFileSync('app.js','utf8')];
+if(!scripts.length) throw new Error('app.js fehlt.');
 
 for(const [index,script] of scripts.entries()){
   try{ new Function(script); }
@@ -26,4 +26,4 @@ for(const name of required){
 
 JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
 new Function(fs.readFileSync('sw.js','utf8'));
-console.log('Pendly smoke test OK:', scripts.length, 'inline scripts geprüft.');
+console.log('Pendly smoke test OK:', scripts.length, 'App-Script geprüft.');
