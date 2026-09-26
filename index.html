@@ -23,14 +23,15 @@
 <div class="cloudBoot" id="cloudBoot"><div class="cloudBootBox"><b id="cloudBootTitle">Deine Daten werden geladen …</b><span id="cloudBootText">Pendly lädt dein persönliches Profil aus der Cloud.</span><button id="cloudBootRetry" type="button" onclick="location.reload()" style="display:none">Erneut laden</button></div></div>
 
 <div class="auth" id="auth">
-  <div class="authbox">
+  <div class="authbox authbox--compact" id="authBox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
       <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.74</div>
     </div>
-    <h1>Jede Zugfahrt hat einen Wert.<br>Pendly zeigt dir welchen.</h1><p class="sub"><a href="/pendly/landing.html">Mehr über Pendly →</a></p>
-    <p>Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
-    <div class="sub" style="margin:14px 0 18px">✓ nur Kosten, die durch weniger Kilometer wirklich sinken<br>✓ persönliche Fahrzeug- und Ticketdaten<br>✓ deine Fahrten bleiben in deinem Pendly-Konto unter deiner Kontrolle</div>
+    <h1 id="authTitle">Willkommen zurück.</h1>
+    <p class="sub authMore"><a href="/pendly/landing.html">Mehr über Pendly →</a></p>
+    <p class="authIntro">Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
+    <div class="sub authFeatures">✓ nur Kosten, die durch weniger Kilometer wirklich sinken<br>✓ persönliche Fahrzeug- und Ticketdaten<br>✓ deine Fahrten bleiben in deinem Pendly-Konto unter deiner Kontrolle</div>
     <div class="authswitch">
       <button id="loginTab" class="active" type="button" onclick="setAuthMode('login')">Anmelden</button>
       <button id="signupTab" type="button" onclick="setAuthMode('signup')">Registrieren</button>
