@@ -33,9 +33,10 @@
     <div class="sub" style="margin:14px 0 18px">✓ nur Kosten, die durch weniger Kilometer wirklich sinken<br>✓ persönliche Fahrzeug- und Ticketdaten<br>✓ deine Fahrten bleiben in deinem Pendly-Konto unter deiner Kontrolle</div>
     <div class="authswitch">
       <button id="loginTab" class="active" type="button" onclick="setAuthMode('login')">Anmelden</button>
-      <button id="signupTab" type="button" onclick="setAuthMode('signup')">Konto erstellen</button>
+      <button id="signupTab" type="button" onclick="setAuthMode('signup')">Registrieren</button>
+      <button id="tryTab" type="button" onclick="showQuickTry()">Jetzt ausprobieren</button>
     </div>
-<section class="card" style="margin-top:18px;text-align:left">
+<section class="card quickTryPanel" id="quickTryPanel" style="margin-top:18px;text-align:left;display:none">
   <div class="label">Pendly einmal ausprobieren – ohne Konto</div>
   <p class="sub" style="margin:7px 0 12px">Wie viel vermeidest du an einem Zugtag?</p>
   <div class="profileGrid">
@@ -51,11 +52,13 @@
   <button class="primary" type="button" onclick="saveQuickAndSignup()">Ergebnis speichern → Konto erstellen</button>
 </div>
 </section>
+    <div id="authFields">
     <div class="field"><label>E-Mail-Adresse</label><input id="authEmail" type="email" autocomplete="email" placeholder="du@beispiel.de"></div>
     <div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 12 Zeichen"></div>
     <button class="primary" id="authSubmit" type="button" onclick="submitAuth()">Anmelden</button>
     <button class="secondary" id="forgotPasswordBtn" type="button" onclick="requestPasswordReset()" style="margin-top:10px">Passwort vergessen?</button>
     <div class="authmsg" id="authMsg"></div>
+    </div>
   </div>
 </div>
 <div class="onboard" id="onboard"><div class="onbox">
