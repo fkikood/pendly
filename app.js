@@ -79,8 +79,12 @@ function quickCalc(){
 function setAuthMode(mode){
   authMode=mode;
   const recovery=mode==='recovery';
+  $('quickTryPanel').style.display='none';
+  $('authFields').style.display='block';
+  $('tryTab').classList.remove('active');
   $('loginTab').classList.toggle('active',mode==='login');
   $('signupTab').classList.toggle('active',mode==='signup');
+  $('tryTab').style.display=recovery?'none':'block';
   $('loginTab').style.display=recovery?'none':'block';
   $('signupTab').style.display=recovery?'none':'block';
   $('authSubmit').textContent=recovery?'Neues Passwort speichern':(mode==='login'?'Anmelden':'Konto erstellen');
@@ -89,6 +93,15 @@ function setAuthMode(mode){
   $('forgotPasswordBtn').style.display=mode==='login'?'block':'none';
   $('authEmail').readOnly=recovery;
   setAuthMessage(recovery?'Lege jetzt dein neues Passwort fest.':'');
+}
+function showQuickTry(){
+  authMode='quick';
+  $('loginTab').classList.remove('active');
+  $('signupTab').classList.remove('active');
+  $('tryTab').classList.add('active');
+  $('authFields').style.display='none';
+  $('quickTryPanel').style.display='block';
+  quickCalc();
 }
 async function requestPasswordReset(){
   if(!sb){setAuthMessage('Pendly konnte den Anmeldedienst nicht laden.');return;}
