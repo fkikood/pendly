@@ -26,7 +26,7 @@
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.73</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.74</div>
     </div>
     <h1>Jede Zugfahrt hat einen Wert.<br>Pendly zeigt dir welchen.</h1><p class="sub"><a href="/pendly/landing.html">Mehr über Pendly →</a></p>
     <p>Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
@@ -114,7 +114,7 @@
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.73</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.74</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -368,9 +368,77 @@
   <button class="primary" onclick="saveSettings()">Änderungen speichern</button>
   <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="resetData()">Fahrten zurücksetzen</button>
 </section>
+<h2>Entwicklung von Pendly</h2>
+<section class="card changelogCard" aria-label="Entwicklung von Pendly">
+  <p class="sub changelogIntro">Hier siehst du die wichtigsten Entwicklungsschritte von Pendly – von den ersten Berechnungen bis zur aktuellen Version.</p>
+  <div class="changelogTimeline">
+    <article class="changelogItem current">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.74</b><span>26.09.2026</span></div>
+        <h3>Jahresrückblick verständlicher</h3>
+        <ul>
+          <li>Ticketkosten im laufenden Jahr werden nur für bereits angefallene Monate berücksichtigt.</li>
+          <li>Zugtage, Autotage und CO₂-Einsparung werden eindeutiger bezeichnet.</li>
+          <li>Die aktuelle Netto-Ersparnis wird als „bisher“ gekennzeichnet.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.70–0.14.73</b><span>26.09.2026</span></div>
+        <h3>Stabilität, Datenschutz & Bedienung</h3>
+        <ul>
+          <li>Onboarding und Schnellstart verbessert.</li>
+          <li>Rechtliche Seiten, Account-Löschung und Datenexport ausgebaut.</li>
+          <li>Accessibility, Tests und CI verbessert.</li>
+          <li>App-Struktur, PWA und Performance weiterentwickelt.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.22–0.14.36</b><span>26.09.2026</span></div>
+        <h3>Berechnung & Cloud stabilisiert</h3>
+        <ul>
+          <li>Fahrtkosten zentralisiert und Statistiken vereinheitlicht.</li>
+          <li>Wertverlust, Wartung, CO₂ und Ticketkosten transparenter berechnet.</li>
+          <li>Kalender und Supabase-Datenladen robuster gemacht.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.13–0.14.21</b><span>23.–26.09.2026</span></div>
+        <h3>Grundlagen für die heutige Pendly-App</h3>
+        <ul>
+          <li>Kraftstoffpreise und historische Preisquellen weiterentwickelt.</li>
+          <li>Versionsanzeige und erste Stabilitätsverbesserungen ergänzt.</li>
+          <li>Persönliche Berechnung und Pendelhistorie ausgebaut.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>Frühe Entwicklung</b><span>September 2026</span></div>
+        <h3>Von der Idee zur persönlichen Pendelbilanz</h3>
+        <ul>
+          <li>Berechnung vermiedener Autokosten als Kern von Pendly etabliert.</li>
+          <li>Fahrten, Homeoffice und freie Tage im Kalender erfassbar gemacht.</li>
+          <li>Statistik, Sparziel und Jahresrückblick aufgebaut.</li>
+        </ul>
+      </div>
+    </article>
+  </div>
+  <p class="changelogFooter">Die vollständige technische Historie steht im GitHub-Änderungsprotokoll.</p>
+</section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.73</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.74</b></div>
 </section>
 </div>
 </div>
