@@ -1,0 +1,218 @@
+name: Pendly boot fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch index.html
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path("index.html")
+          s = p.read_text(encoding="utf-8")
+
+          if "v0.14.37" in s:
+              raise SystemExit(0)
+
+          s = s.replace("0.14.36", "0.14.37")
+
+          if ".cloudBoot{" not in s:
+              s = s.replace(
+                  ".auth{position:fixed;",
+                  ".cloudBoot{position:fixed;inset:0;background:rgba(245,245,247,.98);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px}.cloudBoot.hidden{display:none}.cloudBootBox{width:min(420px,100%);background:#fff;border-radius:26px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.12);text-align:center}.cloudBootBox b{display:block;font-size:20px;margin-bottom:8px}.cloudBootBox span{display:block;color:#6e6e73;line-height:1.45;font-size:14px}.cloudBootBox button{margin-top:18px;border:0;border-radius:15px;padding:13px 18px;background:#007aff;color:#fff;font-size:15px;font-weight:650}.auth{position:fixed;"
+              )
+
+          if 'id="cloudBoot"' not in s:
+              s = s.replace(
+                  "<body>\n",
+                  '<body>\n<div class="cloudBoot" id="cloudBoot"><div class="cloudBootBox"><b id="cloudBootTitle">Deine Daten werden geladen …</b><span id="cloudBootText">Pendly lädt dein persönliches Profil aus der Cloud.</span><button id="cloudBootRetry" type="button" onclick="location.reload()" style="display:none">Erneut laden</button></div></div>\n'
+              )
+
+          if "let cloudBootPromise=null;" not in s:
+              s = s.replace(
+                  "let cloudLoadInProgress=false;",
+                  "let cloudLoadInProgress=false;\nlet cloudBootPromise=null;\nlet cloudLoadedUserId=null;"
+              )
+
+          start = s.index("async function loadUserData(){")
+          end = s.index("\nfunction getSettings(){", start)
+          new_load = r'''async function loadUserData(){
+  if(cloudLoadInProgress)return false;
+  cloudDataReady=false;
+  if(!currentUser || !supabaseReady || !sb)return false;
+  cloudLoadInProgress=true;
+  const userId=currentUser.id;
+  const localKey=localDataKey(userId);
+  const settingsKey='pendly-settings-'+userId;
+  let hadCloudData=false;
+  let localSettings=null;
+  try{
+    const cached=localStorage.getItem(localKey);
+    if(cached){try{data={...data,...JSON.parse(cached)};}catch{}}
+    const cachedSettings=localStorage.getItem(settingsKey);
+    if(cachedSettings){try{localSettings=JSON.parse(cachedSettings);applySettings(localSettings);}catch{}}
+    const {data:row,error}=await sb.from('user_data').select('data,settings').eq('user_id',userId).maybeSingle();
+    if(error)throw error;
+    if(!row)throw new Error('Für dieses Konto wurde kein Pendly-Profil gefunden.');
+    if(row.data && typeof row.data==='object'){
+      data={...data,...row.data};
+      data.events=(row.data.events && typeof row.data.events==='object')?row.data.events:{};
+      data.fuelPrices=(row.data.fuelPrices && typeof row.data.fuelPrices==='object')?row.data.fuelPrices:{};
+      hadCloudData=true;
+    }
+    const cloudSettings=row.settings;
+    const cloudHasProfile=cloudSettings && (Number(cloudSettings.carKm)>0 || Number(cloudSettings.avoidableKm)>0 || Number(cloudSettings.annualKm)>0);
+    const localHasProfile=localSettings && (Number(localSettings.carKm)>0 || Number(localSettings.avoidableKm)>0 || Number(localSettings.annualKm)>0);
+    if(cloudHasProfile){
+      const merged={...(localSettings||{}),...(cloudSettings||{})};
+      for(const id of ['distance','fuelKm','maintenanceKm','depreciationKm','avoidableKm','ticket','days','goal']){
+        const lv=Number(localSettings?.[id]??0);
+        const cv=Number(cloudSettings?.[id]??0);
+        if(lv>0 && cv<=0)merged[id]=localSettings[id];
+      }
+      applySettings(merged);
+      hadCloudData=true;
+    }else if(localHasProfile){
+      applySettings(localSettings);
+    }
+    syncTripCounters();
+    repairCostBreakdown();
+    localStorage.setItem(localKey,JSON.stringify(data));
+    localStorage.setItem(settingsKey,JSON.stringify(getSettings()));
+    cloudDataReady=true;
+    return hadCloudData||!!localHasProfile;
+  }catch(e){
+    console.warn('Pendly-Ladefehler:',e);
+    cloudDataReady=false;
+    return false;
+  }finally{
+    cloudLoadInProgress=false;
+  }
+}
+
+'''
+          s = s[:start] + new_load + s[end:]
+
+          boot_start = s.index("  // Auth first: subscribe before reading the session so INITIAL_SESSION cannot be missed.")
+          boot_end = s.index("\n  if(Math.abs((+$('carKm').value||0)-0.35)", boot_start)
+
+          new_boot = r'''  function showCloudBoot(message,failed=false){
+    const box=$('cloudBoot');
+    if(!box)return;
+    $('cloudBootTitle').textContent=failed?'Deine Daten konnten nicht geladen werden.':'Deine Daten werden geladen …';
+    $('cloudBootText').textContent=message||'Pendly lädt dein persönliches Profil aus der Cloud.';
+    $('cloudBootRetry').style.display=failed?'inline-block':'none';
+    box.classList.remove('hidden');
+  }
+  function hideCloudBoot(){
+    const box=$('cloudBoot');
+    if(box)box.classList.add('hidden');
+  }
+  async function bootAuthenticatedUser(user){
+    if(!user)return false;
+    const userId=user.id;
+    if(cloudLoadedUserId===userId && cloudDataReady){
+      hideCloudBoot();
+      return true;
+    }
+    if(cloudBootPromise)return cloudBootPromise;
+    cloudBootPromise=(async()=>{
+      showCloudBoot();
+      $('auth').classList.add('hidden');
+      $('onboard').classList.add('hidden');
+      let ok=false;
+      for(let attempt=0;attempt<3 && currentUser?.id===userId && !ok;attempt++){
+        ok=await loadUserData();
+        if(!ok && attempt<2)await new Promise(resolve=>setTimeout(resolve,400));
+      }
+      if(currentUser?.id!==userId)return false;
+      if(!ok || !cloudDataReady){
+        showCloudBoot('Die Verbindung zur Cloud funktioniert, aber dein Profil konnte gerade nicht vollständig gelesen werden. Deine gespeicherten Daten wurden dabei nicht verändert.',true);
+        return false;
+      }
+      cloudLoadedUserId=userId;
+      updateAccountLabel();
+      $('auth').classList.add('hidden');
+      $('onboard').classList.add('hidden');
+      calc();
+      hideCloudBoot();
+      return true;
+    })().catch(e=>{
+      console.warn('Pendly-Laden:',e);
+      cloudDataReady=false;
+      showCloudBoot('Beim Laden deines Pendly-Profils ist ein Fehler aufgetreten. Deine gespeicherten Daten wurden dabei nicht verändert.',true);
+      return false;
+    }).finally(()=>{
+      cloudBootPromise=null;
+    });
+    return cloudBootPromise;
+  }
+  try{
+    sb.auth.onAuthStateChange((event,session)=>{
+      const nextUser=session?.user||null;
+      currentUser=nextUser;
+      if(event==='SIGNED_OUT' || !nextUser){
+        cloudDataReady=false;
+        cloudLoadedUserId=null;
+        cloudBootPromise=null;
+        $('auth').classList.remove('hidden');
+        $('onboard').classList.add('hidden');
+        hideCloudBoot();
+        return;
+      }
+      if(event==='TOKEN_REFRESHED' && cloudLoadedUserId===nextUser.id && cloudDataReady){
+        updateAccountLabel();
+        return;
+      }
+      setTimeout(()=>bootAuthenticatedUser(nextUser),0);
+    });
+  }catch(e){
+    currentUser=null;
+    showCloudBoot('Der Anmeldedienst konnte nicht gestartet werden. Bitte lade Pendly erneut.',true);
+  }
+  try{
+    const {data:sessionData,error:sessionError}=await sb.auth.getSession();
+    if(sessionError)throw sessionError;
+    if(sessionData?.session?.user){
+      currentUser=sessionData.session.user;
+      setTimeout(()=>bootAuthenticatedUser(sessionData.session.user),0);
+    }else{
+      hideCloudBoot();
+      $('auth').classList.remove('hidden');
+      $('onboard').classList.add('hidden');
+    }
+  }catch(e){
+    console.warn('Pendly-Sitzung:',e);
+    showCloudBoot('Die Sitzung konnte nicht geladen werden. Bitte lade Pendly erneut.',true);
+  }
+
+'''
+          s = s[:boot_start] + new_boot + s[boot_end:]
+
+          s = s.replace(
+              "  calc();\n});\n\n// Render the calendar immediately after the page DOM is available.",
+              "});\n\n// Render the calendar immediately after the page DOM is available."
+          )
+
+          p.write_text(s, encoding="utf-8")
+
+      - name: Commit patch and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/pendly-boot-fix.yml
+          git commit -m "Fix cloud data boot and auth refresh handling"
+          git push
