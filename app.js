@@ -79,7 +79,7 @@ function quickCalc(){
 function setAuthMode(mode){
   authMode=mode;
   const recovery=mode==='recovery';
-  $('quickTryPanel').style.display='none';
+  $('quickTryPanel').classList.remove('is-visible');
   $('authFields').style.display='block';
   $('authBox').classList.add('authbox--compact');
   $('tryTab').classList.remove('active');
@@ -102,7 +102,7 @@ function showQuickTry(){
   $('signupTab').classList.remove('active');
   $('tryTab').classList.add('active');
   $('authFields').style.display='none';
-  $('quickTryPanel').style.display='block';
+  $('quickTryPanel').classList.add('is-visible');
   $('authBox').classList.remove('authbox--compact');
   $('authTitle').innerHTML='Jede Zugfahrt hat einen Wert.<br>Pendly zeigt dir welchen.';
   quickCalc();
@@ -1426,6 +1426,8 @@ function resetData(){
   }
 }
 document.addEventListener('DOMContentLoaded',async()=>{
+  // Auth starts in the compact login view; the demo is opt-in.
+  setAuthMode('login');
   $('accountBtn').addEventListener('click',accountMenu);
   // Defensive loading: a malformed local setting must never stop the auth flow.
   try{
