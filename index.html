@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f5f7">
-<title>Pendly v0.14.37</title>
+<title>Pendly v0.14.38</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1d1d1f;background:#f5f5f7}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f5f7,#fff);min-height:100vh}
@@ -120,7 +120,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
   <div class="authbox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.37</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.14.38</div>
     </div>
     <h1>Dein Pendly.</h1>
     <p>Speichere deine Fahrten und Einstellungen sicher in deinem persönlichen Konto.</p>
@@ -188,7 +188,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 <input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
-<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.37</div><div class="account" id="accountBtn">Konto</div></div></header>
+<div id="overviewTab" class="tabPanel"><header><div class="logo">Pendly</div><div style="display:flex;align-items:center;gap:12px"><div class="month" id="month"></div><div class="appVersion">v0.14.38</div><div class="account" id="accountBtn">Konto</div></div></header>
 <section class="card savingCard">
 <div class="label">Deine Ersparnis</div>
 <div class="saving" id="saving">0,00 €</div>
@@ -382,7 +382,7 @@ input{width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-s
 </section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.37</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.14.38</b></div>
 </section>
 </div>
 </div>
@@ -1029,7 +1029,7 @@ function calc(){
   let breakMaintenance=0;
   let breakDepreciation=0;
   let fuelPriceDays=0;
-  for(const [day] of fuelDays){
+  for(const day of Object.keys(data.events||{})){
     const trip=calculateTripEconomics(day);
     breakFuel+=trip.fuel;
     breakMaintenance+=trip.maintenance;
