@@ -18,6 +18,8 @@ let cloudDataReady=false;
 let cloudLoadInProgress=false;
 let cloudBootPromise=null;
 let cloudLoadedUserId=null;
+let needsOnboarding=false;
+let quickStartValues=null;
 let authMode='login';
 let saveTimer=null;
 let statsPeriod='week';
@@ -28,6 +30,28 @@ const $=id=>document.getElementById(id);
 const eur=n=>Number(n||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'});
 
 function setAuthMessage(msg){$('authMsg').textContent=msg||'';}
+function applyQuickStartPrefill(){
+  try{
+    const raw=localStorage.getItem('pendly-quick-start');
+    if(!raw)return;
+    const q=JSON.parse(raw);
+    if(!q||!Number.isFinite(Number(q.distance)))return;
+    quickStartValues={
+      distance:Math.max(0,Number(q.distance)||0),
+      carKm:Math.max(0,Number(q.carKm)||0),
+      ticket:Math.max(0,Number(q.ticket)||0),
+      days:Math.max(1,Number(q.days)||20)
+    };
+    if($('distance'))$('distance').value=quickStartValues.distance;
+    if($('days'))$('days').value=quickStartValues.days;
+    if($('oTicketMode'))$('oTicketMode').value='self';
+    if($('oTicketOwn'))$('oTicketOwn').value=quickStartValues.ticket;
+    updateTicketUI();
+    setAuthMessage('Deine Schnellstartwerte wurden übernommen. Du kannst sie im Onboarding noch anpassen.');
+    localStorage.removeItem('pendly-quick-start');
+  }catch(e){console.warn('Pendly-Schnellstart:',e);}
+}
+
 function saveQuickAndSignup(){
   quickCalc();
   localStorage.setItem('pendly-quick-start',JSON.stringify({
@@ -253,7 +277,13 @@ async function loadUserData(){
     if(cachedSettings){try{localSettings=JSON.parse(cachedSettings);applySettings(localSettings);}catch{}}
     const {data:row,error}=await sb.from('user_data').select('data,settings').eq('user_id',userId).maybeSingle();
     if(error)throw error;
-    if(!row)throw new Error('Für dieses Konto wurde kein Pendly-Profil gefunden.');
+    if(!row){
+      needsOnboarding=true;
+      data={train:0,car:0,events:{},fuelPrices:{},fgAnnual:0,fgKmCost:0,commuteSnapshots:{}};
+      cloudDataReady=true;
+      return true;
+    }
+    needsOnboarding=false;
     if(row.data && typeof row.data==='object'){
       data={...data,...row.data};
       data.events=(row.data.events && typeof row.data.events==='object')?row.data.events:{};
@@ -520,8 +550,8 @@ async function finishOnboarding(){
     if($('maintenanceKm')) $('maintenanceKm').value=Number(window.onboardingMaintenanceKm||0).toFixed(4);
     if($('depreciationKm')) $('depreciationKm').value=Number(window.onboardingDepreciationKm||0).toFixed(4);
     if($('co2CarKgKm')) $('co2CarKgKm').value=typeToCo2($('oType').value).toFixed(3);
-    if($('days')) $('days').value=20;
-    if($('distance')) $('distance').value=0;
+    if($('days')) $('days').value=quickStartValues?.days||20;
+    if($('distance')) $('distance').value=quickStartValues?.distance||0;
     if($('insurance')) $('insurance').value=(+$('oInsurance').value||0).toFixed(2);
     if($('maintenance')) $('maintenance').value=(+$('oMaintenance').value||0).toFixed(2);
     if($('tax')) $('tax').value=(+$('oTax').value||0).toFixed(2);
@@ -529,7 +559,7 @@ async function finishOnboarding(){
     const mode=$('oTicketMode') ? $('oTicketMode').value : 'employer_full';
     const totalTicket=$('oTicketTotal') ? (+$('oTicketTotal').value||0) : 0;
     const ownField=$('oTicketOwn') ? (+$('oTicketOwn').value||0) : 0;
-    const ownTicket=mode==='employer_full' ? 0 : (ownField||totalTicket);
+    const ownTicket=quickStartValues?.ticket>0 ? quickStartValues.ticket : (mode==='employer_full' ? 0 : (ownField||totalTicket));
     if($('ticket')) $('ticket').value=ownTicket.toFixed(2);
 
     // Save the onboarding result to the user's cloud profile before closing it.
@@ -1426,6 +1456,13 @@ document.addEventListener('DOMContentLoaded',async()=>{
       cloudLoadedUserId=userId;
       updateAccountLabel();
       $('auth').classList.add('hidden');
+      if(needsOnboarding){
+        $('onboard').classList.remove('hidden');
+        $('onboard').style.display='flex';
+        applyQuickStartPrefill();
+        hideCloudBoot();
+        return true;
+      }
       $('onboard').classList.add('hidden');
       calc();
       hideCloudBoot();
@@ -1485,6 +1522,7 @@ try{
   renderCalendar();
 }catch(e){console.warn('Pendly-Kalender-Initialisierung:',e);}
 
+window.applyQuickStartPrefill=applyQuickStartPrefill;
 window.setAuthMode=setAuthMode;
 window.requestPasswordReset=requestPasswordReset;
 window.submitAuth=submitAuth;
