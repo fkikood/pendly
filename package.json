@@ -1,0 +1,5 @@
+{
+  "name":"pendly",
+  "private":true,
+  "scripts":{"test":"node smoke-test.mjs"}
+}
