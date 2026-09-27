@@ -880,14 +880,17 @@ function calc(){
   const todayTrip=data.events?.[localISODate()] === 'train' ? calculateTripEconomics(localISODate()) : null;
   $('perDay').textContent=todayTrip ? eur(todayTrip.avoidable) : '—';
   $('netMonth').textContent=eur(net);
-  $('saving').textContent=eur(savedWithoutDepreciation);
-  if($('savingWithDepreciation')) $('savingWithDepreciation').textContent=eur(net);
+  // The main savings figure uses the same definition as the progress view:
+  // net savings including estimated depreciation. The secondary figure shows
+  // the comparable amount without depreciation.
+  $('saving').textContent=eur(net);
+  if($('savingWithDepreciation')) $('savingWithDepreciation').textContent=eur(savedWithoutDepreciation);
   const savingGoal=Math.max(0,+$('goal').value||2000);
   const savingPct=savingGoal>0?Math.min(100,Math.max(0,net/savingGoal*100)):0;
   if($('savingGoalPct')) $('savingGoalPct').textContent=Math.round(savingPct)+' %';
   if($('savingGoalFill')) $('savingGoalFill').style.width=savingPct+'%';
   if($('savingMessage')){
-    $('savingMessage').textContent=savedWithoutDepreciation<=0?'Starte mit deiner ersten Zugfahrt und sieh, was du sparen kannst.':savingPct>=100?'Dein Sparziel ist erreicht. Stark gemacht! 🎉':savedWithoutDepreciation>=100?'Du bist schon auf einem guten Weg. Jede Zugfahrt zählt.':'Jede Zugfahrt macht deine Pendelbilanz ein Stück besser.';
+    $('savingMessage').textContent=net<=0?'Starte mit deiner ersten Zugfahrt und sieh, was du sparen kannst.':savingPct>=100?'Dein Sparziel ist erreicht. Stark gemacht! 🎉':net>=100?'Du bist schon auf einem guten Weg. Jede Zugfahrt zählt.':'Jede Zugfahrt macht deine Pendelbilanz ein Stück besser.';
   }
   $('trainDays').textContent=data.train;
   $('carDays').textContent=data.car;
