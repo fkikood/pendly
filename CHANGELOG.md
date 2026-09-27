@@ -1,5 +1,12 @@
 # Pendly – Änderungsprotokoll
 
+## v0.15.0
+- Hauptkopf der App für Mobilgeräte neu strukturiert.
+- Pendly, Konto und aktueller Monat klar voneinander getrennt.
+- Versionsnummer aus der Hauptansicht entfernt; sie bleibt Teil der App-Informationen.
+- Versionssprung auf v0.15.0 als neuer Entwicklungsabschnitt.
+
+
 ## v0.14.75
 - Anmeldemaske auf die drei klaren Wege **Anmelden**, **Konto erstellen** und **Demo ausprobieren** reduziert.
 - Demo-Kalkulation ist beim Start standardmäßig ausgeblendet und wird nur bewusst geöffnet.
