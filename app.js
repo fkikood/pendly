@@ -1095,8 +1095,11 @@ function updateBreakEven(){
     return;
   }
   const days=monthlyTicket/avoidedPerTrainDay;
-  out.textContent=days<1?'unter 1 Zugtag':days.toLocaleString('de-DE',{maximumFractionDigits:1})+' Zugtage';
-  text.textContent='Rechnerisch ist dein eigener Monatsbeitrag nach etwa '+days.toLocaleString('de-DE',{maximumFractionDigits:1})+' Zugtagen durch vermiedene Autokosten ausgeglichen. Das ist eine Monatsbetrachtung und keine Aussage über die langfristige Rentabilität des Tickets.';
+  const displayedDays=Number(days.toLocaleString('de-DE',{maximumFractionDigits:1}));
+  const dayLabel=displayedDays===1?'Zugtag':'Zugtage';
+  const displayedDaysText=displayedDays.toLocaleString('de-DE',{maximumFractionDigits:1});
+  out.textContent=days<1?'unter 1 Zugtag':displayedDaysText+' '+dayLabel;
+  text.textContent='Rechnerisch ist dein eigener Monatsbeitrag nach etwa '+(days<1?'unter 1':displayedDaysText)+' '+(days<1?'Zugtag':dayLabel)+' durch vermiedene Autokosten ausgeglichen. Das ist eine Monatsbetrachtung und keine Aussage über die langfristige Rentabilität des Tickets.';
 }
 
 function getSelectedPatternDays(){
