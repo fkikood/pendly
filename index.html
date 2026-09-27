@@ -20,7 +20,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Pendly","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://fkikood.github.io/pendly/","description":"Pendly berechnet persönliche, vermiedene Autokosten durch Zugfahrten und macht Pendelkosten pro Fahrt, Monat und Jahr verständlich.","inLanguage":"de-DE"}</script><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Pendly">
 </head>
 <body>
-<div class="cloudBoot" id="cloudBoot"><div class="cloudBootBox"><b id="cloudBootTitle">Deine Daten werden geladen …</b><span id="cloudBootText">Pendly lädt dein persönliches Profil aus der Cloud.</span><button id="cloudBootRetry" type="button" onclick="location.reload()" style="display:none">Erneut laden</button></div></div>
+<div class="cloudBoot hidden" id="cloudBoot"><div class="cloudBootBox"><b id="cloudBootTitle">Deine Daten werden geladen …</b><span id="cloudBootText">Pendly lädt dein persönliches Profil aus der Cloud.</span><button id="cloudBootRetry" type="button" onclick="location.reload()" style="display:none">Erneut laden</button></div></div>
 
 <div class="auth" id="auth">
   <div class="authbox authbox--compact" id="authBox">
@@ -33,7 +33,7 @@
     <p class="authIntro">Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
     <div class="sub authFeatures">✓ nur Kosten, die durch weniger Kilometer wirklich sinken<br>✓ persönliche Fahrzeug- und Ticketdaten<br>✓ deine Fahrten bleiben in deinem Pendly-Konto unter deiner Kontrolle</div>
     <div class="authswitch">
-      <button id="loginTab" class="active" type="button" <button id="tryTab" type="button" onclick="showQuickTry()">Demo</button>
+      <button id="tryTab" type="button" onclick="showQuickTry()">Demo</button>
       <button id="loginTab" class="active" type="button" onclick="setAuthMode('login')">Anmelden</button>
       <button id="signupTab" type="button" onclick="setAuthMode('signup')">Registrieren</button>
     </div>
