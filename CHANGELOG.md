@@ -1,5 +1,11 @@
 # Pendly – Änderungsprotokoll
 
+## v0.15.2
+- Cloud-Ladefenster startet nicht mehr bei abgemeldeten Besuchern.
+- Cloud-Daten werden weiterhin erst nach erkannter Supabase-Sitzung geladen.
+- Auth-Buttons in der Anmeldemaske bereinigt.
+
+
 ## v0.15.1
 - Netto-Ersparnis inklusive geschätztem Wertverlust ist jetzt die zentrale Zahl auf der Startseite.
 - Vergleichswert zeigt transparent den Betrag **ohne Wertverlust**.
