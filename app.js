@@ -82,7 +82,7 @@ function setAuthMode(mode){
   $('quickTryPanel').classList.remove('is-visible');
   $('authFields').style.display='block';
   $('authBox').classList.add('authbox--compact');
-  $('tryTab').classList.remove('active');
+  $('tryTab').classList.toggle('active',false);
   $('loginTab').classList.toggle('active',mode==='login');
   $('signupTab').classList.toggle('active',mode==='signup');
   $('tryTab').style.display=recovery?'none':'block';
