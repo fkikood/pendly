@@ -1,5 +1,10 @@
 # Pendly – Änderungsprotokoll
 
+## v0.15.3
+- Break-even-Anzeige grammatikalisch an die Zahl angepasst: **1 Zugtag**, ab 2 **Zugtage**.
+- Auch der erklärende Break-even-Satz verwendet die passende Singular-/Pluralform.
+
+
 ## v0.15.2
 - Cloud-Ladefenster startet nicht mehr bei abgemeldeten Besuchern.
 - Cloud-Daten werden weiterhin erst nach erkannter Supabase-Sitzung geladen.
