@@ -1,5 +1,11 @@
 # Pendly – Änderungsprotokoll
 
+## v0.15.1
+- Netto-Ersparnis inklusive geschätztem Wertverlust ist jetzt die zentrale Zahl auf der Startseite.
+- Vergleichswert zeigt transparent den Betrag **ohne Wertverlust**.
+- Startseite, Fortschrittsbereich und Sparziel verwenden damit dieselbe Netto-Definition.
+
+
 ## v0.15.0
 - Hauptkopf der App für Mobilgeräte neu strukturiert.
 - Pendly, Konto und aktueller Monat klar voneinander getrennt.
