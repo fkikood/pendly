@@ -137,3 +137,25 @@ button,a,input,select,textarea{outline-offset:3px}button:focus-visible,a:focus-v
 .changelogContent ul{margin:0;padding-left:18px;color:#6e6e73;font-size:13px;line-height:1.45}
 .changelogContent li+li{margin-top:3px}
 .changelogFooter{margin:18px 0 0;padding-top:14px;border-top:1px solid #e5e5ea;font-size:12px;color:#8e8e93}
+
+.feedbackLink{display:block;width:100%;border:0;background:none;color:#6e6e73;font-size:14px;margin-top:14px;padding:8px;cursor:pointer}
+.feedbackLink:hover{color:#007aff}
+.feedbackModal{position:fixed;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.feedbackModal.hidden{display:none}
+.feedbackBox{width:min(620px,100%);max-height:min(88vh,760px);overflow:auto;background:#fff;border-radius:28px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.18)}
+.feedbackHead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px}
+.feedbackHead h2{margin:0;font-size:26px}
+.feedbackMeta{margin:10px 0 16px}
+.feedbackHint{min-height:24px;margin-top:12px;color:#6e6e73;line-height:1.45}
+.feedbackHistory{margin-top:24px}
+.feedbackHistory h3{margin:0 0 10px}
+.feedbackItem{padding:13px 0;border-top:1px solid #e5e5ea}
+.feedbackItem>div{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.feedbackItem span{font-size:13px;color:#8e8e93}
+.feedbackResolution{margin:7px 0 0;color:#6e6e73}
+.feedbackBox textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:130px;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font:inherit;line-height:1.45}
+@media (max-width:600px){
+  .feedbackModal{align-items:flex-end;padding:10px}
+  .feedbackBox{border-radius:26px;max-height:92vh;padding:22px}
+  .feedbackHead h2{font-size:22px}
+}
