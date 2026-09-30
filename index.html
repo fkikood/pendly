@@ -26,7 +26,7 @@
   <div class="authbox authbox--compact" id="authBox">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="logo">Pendly</div>
-      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.15.4</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.15.5</div>
     </div>
     <h1 id="authTitle">Willkommen zurück.</h1>
     <p class="sub authMore"><a href="/pendly/landing.html">Mehr über Pendly →</a></p>
@@ -58,6 +58,7 @@
     <div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 12 Zeichen"></div>
     <button class="primary" id="authSubmit" type="button" onclick="submitAuth()">Anmelden</button>
     <button class="secondary" id="forgotPasswordBtn" type="button" onclick="requestPasswordReset()" style="margin-top:10px">Passwort vergessen?</button>
+    <button class="feedbackLink" type="button" onclick="openFeedback()">Problem melden</button>
     <div class="authmsg" id="authMsg"></div>
     </div>
   </div>
@@ -372,6 +373,12 @@
   <button class="primary" onclick="saveSettings()">Änderungen speichern</button>
   <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="resetData()">Fahrten zurücksetzen</button>
 </section>
+<h2>Feedback & Fehler melden</h2>
+<section class="card">
+  <p class="sub" style="margin-top:0">Ist etwas unklar, funktioniert etwas nicht oder hast du eine Idee? Schick uns direkt eine Meldung. Wir kümmern uns darum.</p>
+  <button class="primary" type="button" onclick="openFeedback()">Feedback senden</button>
+  <div id="feedbackHistory" class="feedbackHistory"></div>
+</section>
 <h2>Entwicklung von Pendly</h2>
 <section class="card changelogCard" aria-label="Entwicklung von Pendly">
   <p class="sub changelogIntro">Hier siehst du die wichtigsten Entwicklungsschritte von Pendly – von den ersten Berechnungen bis zur aktuellen Version.</p>
@@ -442,11 +449,23 @@
 </section>
 <h2>Über Pendly</h2>
 <section class="card">
-  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.15.4</b></div>
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.15.5</b></div>
 </section>
 </div>
 </div>
-<div class="fuelPriceModal hidden" id="fuelPriceModal" aria-hidden="true"><div class="fuelPriceBox"><div class="fuelPriceHead"><h2>Preise deiner Zugtage</h2><button class="fuelPriceClose" type="button" onclick="closeFuelPriceDetails()">×</button></div><p class="sub" style="margin:0 0 14px">Hier siehst du für jeden Zugtag den Literpreis, den Pendly für die Berechnung verwendet hat.</p><div class="fuelPriceList" id="fuelPriceList"></div></div></div><div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 12 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="secondary" type="button" onclick="exportPendlyJSON()">Daten als JSON exportieren</button><button class="secondary" type="button" onclick="exportPendlyCSV()">Fahrten als CSV exportieren</button><button class="danger" type="button" onclick="deleteAccount()">Konto dauerhaft löschen</button><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
+<div class="feedbackModal hidden" id="feedbackModal" aria-hidden="true">
+  <div class="feedbackBox">
+    <div class="feedbackHead"><h2>Feedback & Fehler melden</h2><button class="profileClose" type="button" onclick="closeFeedback()">×</button></div>
+    <p class="sub">Beschreibe kurz, was passiert ist. Wir prüfen deine Meldung und halten dich per E-Mail auf dem Laufenden.</p>
+    <div class="field"><label>E-Mail-Adresse</label><input id="feedbackEmail" type="email" autocomplete="email" placeholder="du@beispiel.de"></div>
+    <div class="field"><label>Art der Meldung</label><select id="feedbackCategory"><option value="bug">Fehler / Problem</option><option value="feedback">Feedback / Verbesserung</option><option value="question">Frage</option></select></div>
+    <div class="field"><label>Titel</label><input id="feedbackSubject" type="text" maxlength="160" placeholder="Was ist passiert?"></div>
+    <div class="field"><label>Beschreibung</label><textarea id="feedbackMessage" rows="6" maxlength="5000" placeholder="Beschreibe möglichst genau, was du gemacht hast und was anschließend passiert ist."></textarea></div>
+    <div class="sub feedbackMeta">Pendly-Version <b id="feedbackVersion">v0.15.5</b></div>
+    <button class="primary" id="feedbackSubmit" type="button" onclick="submitFeedback()">Meldung senden</button>
+    <div class="feedbackHint" id="feedbackHint"></div>
+  </div>
+</div><div class="fuelPriceModal hidden" id="fuelPriceModal" aria-hidden="true"><div class="fuelPriceBox"><div class="fuelPriceHead"><h2>Preise deiner Zugtage</h2><button class="fuelPriceClose" type="button" onclick="closeFuelPriceDetails()">×</button></div><p class="sub" style="margin:0 0 14px">Hier siehst du für jeden Zugtag den Literpreis, den Pendly für die Berechnung verwendet hat.</p><div class="fuelPriceList" id="fuelPriceList"></div></div></div><div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 12 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="secondary" type="button" onclick="exportPendlyJSON()">Daten als JSON exportieren</button><button class="secondary" type="button" onclick="exportPendlyCSV()">Fahrten als CSV exportieren</button><button class="danger" type="button" onclick="deleteAccount()">Konto dauerhaft löschen</button><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
   <button class="active" type="button" onclick="showTab('overview',this)">
     <span class="navIcon">⌂</span><span class="navLabel">Übersicht</span>
   </button>
