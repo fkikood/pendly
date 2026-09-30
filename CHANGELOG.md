@@ -1,5 +1,13 @@
 # Pendly – Änderungsprotokoll
 
+## v0.15.5
+- Feedback- und Fehler-Meldung direkt aus Pendly eingebaut.
+- Meldungen werden in Supabase gespeichert und können den Status **offen**, **in Arbeit** oder **erledigt** erhalten.
+- Nutzer können ihre eigenen Meldungen und deren Status in Pendly sehen.
+- Automatische Dankes- und Abschlussmails für Feedback vorbereitet.
+- Login-Seite bietet auch ohne Anmeldung einen direkten Weg zu „Problem melden“.
+
+
 ## v0.15.4
 - Login blockiert nicht mehr wegen unvollständiger optionaler Profildaten.
 - Erfolgreich gelesene Cloud-Daten werden auch bei älteren Profilen als erfolgreicher Ladevorgang behandelt.
