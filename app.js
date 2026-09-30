@@ -332,8 +332,11 @@ async function loadUserData(){
     repairCostBreakdown();
     localStorage.setItem(localKey,JSON.stringify(data));
     localStorage.setItem(settingsKey,JSON.stringify(getSettings()));
+    // A readable user_data row means the cloud load itself succeeded.
+    // Do not block login just because an older/incomplete profile has
+    // missing optional settings. Existing trips and cloud data remain intact.
     cloudDataReady=true;
-    return hadCloudData||!!localHasProfile;
+    return true;
   }catch(e){
     console.warn('Pendly-Ladefehler:',e);
     cloudDataReady=false;
