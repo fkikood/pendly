@@ -138,6 +138,7 @@ async function submitAuth(){
       if(error)throw error;
       setAuthMessage('Passwort erfolgreich geändert. Du kannst Pendly jetzt verwenden.');
       setAuthMode('login');
+  if(currentUser) loadFeedbackHistory();
       $('authPassword').value='';
     }else if(authMode==='login'){
       const {error}=await sb.auth.signInWithPassword({email,password});
@@ -275,6 +276,85 @@ async function changePassword(){
     $('profileHint').textContent='Passwort erfolgreich geändert.';
   }catch(e){$('profileHint').textContent=e.message||'Passwort konnte nicht geändert werden.';}
 }
+function openFeedback(){
+  const modal=$('feedbackModal');
+  if(!modal)return;
+  $('feedbackEmail').value=currentUser?.email||$('authEmail')?.value?.trim()||'';
+  $('feedbackCategory').value='bug';
+  $('feedbackSubject').value='';
+  $('feedbackMessage').value='';
+  $('feedbackHint').textContent='';
+  $('feedbackVersion').textContent=document.querySelector('.appVersion')?.textContent||$('authVersion')?.textContent||'';
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden','false');
+  setTimeout(()=>$('feedbackSubject').focus(),50);
+  if(currentUser)loadFeedbackHistory();
+}
+function closeFeedback(){
+  const modal=$('feedbackModal');
+  if(!modal)return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden','true');
+}
+function feedbackStatusLabel(status){
+  return status==='resolved'?'Erledigt':status==='in_progress'?'In Arbeit':'Offen';
+}
+async function loadFeedbackHistory(){
+  if(!currentUser||!sb||!$('feedbackHistory'))return;
+  const {data:rows,error}=await sb.from('feedback_reports')
+    .select('id,category,subject,message,status,created_at,resolved_at,resolution_note')
+    .eq('user_id',currentUser.id)
+    .order('created_at',{ascending:false})
+    .limit(10);
+  if(error){
+    $('feedbackHistory').innerHTML='';
+    return;
+  }
+  if(!rows?.length){
+    $('feedbackHistory').innerHTML='';
+    return;
+  }
+  $('feedbackHistory').innerHTML='<h3>Deine Meldungen</h3>'+rows.map(row=>{
+    const title=escapeHtml(row.subject||'Ohne Titel');
+    const date=new Date(row.created_at).toLocaleDateString('de-DE');
+    const note=row.resolution_note?'<p class="feedbackResolution">'+escapeHtml(row.resolution_note)+'</p>':'';
+    return '<article class="feedbackItem"><div><b>'+title+'</b><span>'+date+' · '+feedbackStatusLabel(row.status)+'</span></div>'+note+'</article>';
+  }).join('');
+}
+function escapeHtml(value){
+  return String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;");
+}
+async function submitFeedback(){
+  if(!sb){$('feedbackHint').textContent='Der Feedback-Dienst ist gerade nicht verfügbar. Bitte lade Pendly neu.';return;}
+  const email=$('feedbackEmail').value.trim();
+  const category=$('feedbackCategory').value;
+  const subject=$('feedbackSubject').value.trim();
+  const message=$('feedbackMessage').value.trim();
+  if(!email||!email.includes('@')){$('feedbackHint').textContent='Bitte eine gültige E-Mail-Adresse eingeben.';return;}
+  if(message.length<10){$('feedbackHint').textContent='Bitte beschreibe das Problem etwas genauer.';return;}
+  const btn=$('feedbackSubmit');
+  btn.disabled=true;
+  $('feedbackHint').textContent='Deine Meldung wird gespeichert …';
+  try{
+    const {error}=await sb.from('feedback_reports').insert({
+      email,
+      category,
+      subject,
+      message,
+      app_version:document.querySelector('.appVersion')?.textContent||$('authVersion')?.textContent||''
+    });
+    if(error)throw error;
+    $('feedbackHint').textContent='Vielen Dank. Deine Meldung ist angekommen. Wir kümmern uns darum und melden uns per E-Mail.';
+    $('feedbackSubject').value='';
+    $('feedbackMessage').value='';
+    if(currentUser)await loadFeedbackHistory();
+  }catch(e){
+    $('feedbackHint').textContent=e.message||'Die Meldung konnte nicht gespeichert werden.';
+  }finally{
+    btn.disabled=false;
+  }
+}
+
 function localDataKey(userId){return 'pendly-user-'+userId;}
 
 async function loadUserData(){
@@ -1595,6 +1675,9 @@ window.shareAnnualReport=shareAnnualReport;
 window.closeAccount=closeAccount;
 window.saveProfile=saveProfile;
 window.changePassword=changePassword;
+window.openFeedback=openFeedback;
+window.closeFeedback=closeFeedback;
+window.submitFeedback=submitFeedback;
 
 window.showTab=showTab;window.updateStats=updateStats;window.loadSettings=loadSettings;
 window.saveSettings=saveSettings;window.resetData=resetData;
