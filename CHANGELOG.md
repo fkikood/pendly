@@ -1,5 +1,11 @@
 # Pendly – Änderungsprotokoll
 
+## v0.15.4
+- Login blockiert nicht mehr wegen unvollständiger optionaler Profildaten.
+- Erfolgreich gelesene Cloud-Daten werden auch bei älteren Profilen als erfolgreicher Ladevorgang behandelt.
+- Gespeicherte Fahrten und Cloud-Daten bleiben unverändert.
+
+
 ## v0.15.3
 - Break-even-Anzeige grammatikalisch an die Zahl angepasst: **1 Zugtag**, ab 2 **Zugtage**.
 - Auch der erklärende Break-even-Satz verwendet die passende Singular-/Pluralform.
