@@ -1594,6 +1594,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
       }
       $('onboard').classList.add('hidden');
       calc();
+      loadFeedbackHistory();
       hideCloudBoot();
       return true;
     })().catch(e=>{
