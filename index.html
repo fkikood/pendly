@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<title>Pendly – Pendelkosten verstehen</title>
+<link rel="stylesheet" href="/pendly/styles.css">
+<link rel="manifest" href="/pendly/manifest.webmanifest"><link rel="icon" href="/pendly/pendly-icon-192.svg"><link rel="apple-touch-icon" href="/pendly/pendly-icon-192.svg"><meta name="theme-color" content="#007aff">
+<meta name="description" content="Pendly zeigt dir, welche Autokosten du durch Zugfahrten tatsächlich vermeidest – persönlich berechnet statt nur pauschal geschätzt.">
+<link rel="canonical" href="https://fkikood.github.io/pendly/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pendly – Was sparst du wirklich, wenn du das Auto stehen lässt?">
+<meta property="og:description" content="Pendly macht deine vermiedenen Pendelkosten sichtbar – pro Fahrt, Monat und Jahr.">
+<meta property="og:url" content="https://fkikood.github.io/pendly/">
+<meta property="og:site_name" content="Pendly">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pendly – Pendelkosten verstehen">
+<meta name="twitter:description" content="Deine persönliche Rechnung für Zugfahrt, Auto und vermiedene Autokosten.">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Pendly","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://fkikood.github.io/pendly/","description":"Pendly berechnet persönliche, vermiedene Autokosten durch Zugfahrten und macht Pendelkosten pro Fahrt, Monat und Jahr verständlich.","inLanguage":"de-DE"}</script><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Pendly">
+</head>
+<body>
+<div class="cloudBoot hidden" id="cloudBoot"><div class="cloudBootBox"><b id="cloudBootTitle">Deine Daten werden geladen …</b><span id="cloudBootText">Pendly lädt dein persönliches Profil aus der Cloud.</span><button id="cloudBootRetry" type="button" onclick="location.reload()" style="display:none">Erneut laden</button></div></div>
+
+<div class="auth" id="auth">
+  <div class="authbox authbox--compact" id="authBox">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div class="logo">Pendly</div>
+      <div id="authVersion" style="font-size:12px;color:#8e8e93;font-weight:500">v0.15.5</div>
+    </div>
+    <h1 id="authTitle">Willkommen zurück.</h1>
+    <p class="sub authMore"><a href="/pendly/landing.html">Mehr über Pendly →</a></p>
+    <p class="authIntro">Deine persönliche Rechnung für vermiedene Autokosten – pro Fahrt, Monat und Jahr.</p>
+    <div class="sub authFeatures">✓ nur Kosten, die durch weniger Kilometer wirklich sinken<br>✓ persönliche Fahrzeug- und Ticketdaten<br>✓ deine Fahrten bleiben in deinem Pendly-Konto unter deiner Kontrolle</div>
+    <div class="authswitch">
+      <button id="tryTab" type="button" onclick="showQuickTry()">Demo</button>
+      <button id="loginTab" class="active" type="button" onclick="setAuthMode('login')">Anmelden</button>
+      <button id="signupTab" type="button" onclick="setAuthMode('signup')">Registrieren</button>
+    </div>
+<section class="card quickTryPanel" id="quickTryPanel" style="margin-top:18px;text-align:left;display:none">
+  <div class="label">Pendly einmal ausprobieren – ohne Konto</div>
+  <p class="sub" style="margin:7px 0 12px">Wie viel vermeidest du an einem Zugtag?</p>
+  <div class="profileGrid">
+    <div class="field"><label>Einfache Strecke (km)</label><input id="quickDistance" type="number" min="0" step="1" value="25"></div>
+    <div class="field"><label>Vermeidbare Autokosten / km</label><input id="quickCarKm" type="number" min="0" step="0.01" value="0.25"></div>
+    <div class="field"><label>Eigener Ticketanteil / Monat</label><input id="quickTicket" type="number" min="0" step="1" value="58"></div>
+    <div class="field"><label>Arbeitstage / Monat</label><input id="quickDays" type="number" min="1" step="1" value="20"></div>
+  </div>
+  <div class="saving" id="quickResult" style="margin-top:12px">12,50 €</div>
+  <div class="sub" id="quickResultText">vermeidbare Autokosten pro Zugtag · deine Rechnung bleibt nur in diesem Browser</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+  <button class="secondary" type="button" onclick="quickCalc()">Berechnen</button>
+  <button class="primary" type="button" onclick="saveQuickAndSignup()">Ergebnis speichern → Konto erstellen</button>
+</div>
+</section>
+    <div id="authFields">
+    <div class="field"><label>E-Mail-Adresse</label><input id="authEmail" type="email" autocomplete="email" placeholder="du@beispiel.de"></div>
+    <div class="field"><label>Passwort</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mindestens 12 Zeichen"></div>
+    <button class="primary" id="authSubmit" type="button" onclick="submitAuth()">Anmelden</button>
+    <button class="secondary" id="forgotPasswordBtn" type="button" onclick="requestPasswordReset()" style="margin-top:10px">Passwort vergessen?</button>
+    <button class="feedbackLink" type="button" onclick="openFeedback()">Problem melden</button>
+    <div class="authmsg" id="authMsg"></div>
+    </div>
+  </div>
+</div>
+<div class="onboard" id="onboard"><div class="onbox">
+<div id="q1">
+<h1>Willkommen bei Pendly.</h1><p>Wir schätzen zuerst deine echten Autokosten. Dauert etwa 1 Minute.</p>
+<div class="field"><label>Welchen Antrieb hat dein Auto?</label>
+<select id="oType" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+<option>Benzin</option><option>Diesel</option><option>Hybrid</option><option>Elektro</option></select></div>
+<div class="field"><label>Was hat dein Auto ungefähr gekostet? (€)</label><input id="oPrice" type="number" value="30000"></div>
+<div class="field"><label>Wie alt ist dein Auto? (Jahre)</label><input id="oAge" type="number" value="4"></div>
+<button class="primary" onclick="nextQ()">Weiter</button>
+</div>
+<div id="q2" style="display:none">
+<h1>Noch ein paar Fragen.</h1>
+<div class="field"><label>Wie viele km fährst du ungefähr pro Jahr?</label>
+<select id="oAnnual" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+<option value="7500">5.000–10.000 km</option><option value="12500">10.000–15.000 km</option><option value="17500">15.000–20.000 km</option><option value="22500">20.000–25.000 km</option><option value="30000">mehr als 25.000 km</option></select></div>
+<div class="field"><label id="oConsumptionLabel">Verbrauch (pro 100 km)</label><input id="oConsumption" type="number" step=".1" value="6.5"></div>
+<div class="field" id="fuelField"><label id="fuelLabel">Kraftstoffpreis (€ / Liter)</label><input id="oFuel" type="number" step=".01" value="1.75"></div>
+<button class="primary" onclick="nextQ2()">Präzise berechnen</button>
+<button class="secondary" type="button" onclick="quickStartOnboarding()">Schnellstart mit Standardwerten</button>
+<p class="sub" style="margin-top:10px">Schnellstart nutzt Standardwerte für Versicherung, Wartung, Steuer, Parken und Ticket. Du kannst alles später anpassen.</p>
+</div>
+<div id="q3" style="display:none">
+<h1>Fast geschafft.</h1>
+<div class="field"><label>Versicherung pro Monat (€)</label><input id="oInsurance" type="number" value="90"></div>
+<div class="field"><label>Wartung, Reifen & Reparaturen pro Monat (€)</label><input id="oMaintenance" type="number" value="70"><small class="sub">Pendly behandelt diesen Betrag als geschätzte kilometerabhängige Kosten.</small></div>
+<div class="field"><label>Steuer pro Jahr (€)</label><input id="oTax" type="number" value="180"></div>
+<div class="field"><label>Parken / Stellplatz pro Monat (€)</label><input id="oParking" type="number" value="0"></div>
+<button class="primary" onclick="nextQ3()">Weiter</button>
+</div>
+<div id="qticket" style="display:none">
+<h1>Wer bezahlt dein Zugticket?</h1>
+<p>Damit Pendly deine <b>persönliche</b> Ersparnis berechnen kann.</p>
+<div class="field"><label>Ticketkosten</label>
+<select id="oTicketMode" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+<option value="employer_full">Mein Arbeitgeber bezahlt es komplett</option>
+<option value="employer_part">Mein Arbeitgeber bezuschusst es</option>
+<option value="self">Ich bezahle es selbst</option>
+</select></div>
+<div class="field" id="ticketTotalField"><label>Ticketpreis pro Monat (€)</label><input id="oTicketTotal" type="number" step=".01" value="63"></div>
+<div class="field" id="ticketOwnField" style="display:none"><label>Mein Anteil pro Monat (€)</label><input id="oTicketOwn" type="number" step=".01" value="23"></div>
+<button class="primary" onclick="showResult()">Weiter</button>
+</div>
+<div id="q4" style="display:none">
+<h1>Deine Schätzung</h1><p>Pendly kombiniert deine Angaben mit einem pauschalen Wertverlust-Modell.</p>
+<div class="saving" id="oResult">0,00 €</div><div class="sub">geschätzte Autokosten pro Kilometer</div>
+<div class="stats"><div class="stat"><b id="oFuelPart">—</b><span>Energie / km</span></div><div class="stat"><b id="oFixedPart">—</b><span>Besitzkosten / km</span></div></div>
+<p class="sub" style="margin-top:12px">Deine Ersparnis pro vermiedener Autofahrt ist eine Schätzung. Sie berücksichtigt nur Kosten, die durch weniger Kilometer tatsächlich sinken. Versicherung, Steuer und Stellplatz laufen weiter.</p>
+<button class="primary" onclick="finishOnboarding()">Passt 👍</button>
+</div>
+</div></div>
+<div id="pendlyState" aria-hidden="true" style="display:none">
+<input id="carKm" value="0"><input id="carPurchasePrice" value="0"><input id="carAge" value="0"><input id="avoidableKm" value="0"><input id="annualKm" value="12500"><input id="fuelKm" value="0"><input id="maintenanceKm" value="0"><input id="depreciationKm" value="0">
+<input id="insurance" value="90"><input id="maintenance" value="70"><input id="tax" value="180"><input id="parking" value="0">
+<input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
+</div>
+<div class="app">
+<div id="overviewTab" class="tabPanel"><header class="appHeader"><div class="appHeaderMain"><div class="logo">Pendly</div><button class="account appAccount" id="accountBtn" type="button">Konto</button></div><div class="appHeaderMeta"><div class="month" id="month"></div></div></header>
+<section class="card savingCard">
+<div class="label">Deine Netto-Ersparnis</div>
+<div class="saving" id="saving">0,00 €</div>
+<div class="savingSecondary"><span>davon ohne Wertverlust</span><b id="savingWithDepreciation">0,00 €</b></div>
+<div class="savingMessage" id="savingMessage">Jede Zugfahrt macht deine Pendelbilanz ein Stück besser.</div>
+<div class="stats">
+<div class="stat"><b id="trainDays">0</b><span>Zugfahrten</span></div>
+<div class="stat"><b id="carDays">0</b><span>Autofahrten</span></div>
+</div>
+<div class="savingGoal"><div class="savingGoalTop"><span>Sparziel · Netto-Ersparnis</span><span id="savingGoalPct">0 %</span></div><div class="savingGoalBar"><div class="savingGoalFill" id="savingGoalFill"></div></div></div>
+</section>
+<h2>Was ist heute?</h2>
+<p class="sub" style="margin:-8px 0 12px">Ein Tap – Pendly trägt den heutigen Tag ein.</p>
+<div class="actions">
+<button class="action train" onclick="travel('train')">🚆 Zug</button>
+<button class="action car" onclick="travel('car')">🚗 Auto</button>
+<button class="action" onclick="travel('home')">🏠 Homeoffice</button>
+<button class="action" onclick="travel('off')">🌴 Frei</button>
+</div>
+
+<h2>Dein Pendelmuster</h2>
+<section class="card">
+  <div class="label">Wiederkehrende Tage schnell eintragen</div>
+  <p class="sub" style="margin:8px 0 10px">Wähle die üblichen Arbeitstage. Pendly trägt nur noch freie Tage in den nächsten 6 Wochen ein.</p>
+  <div class="field" style="margin:10px 0"><label>Standard für diese Tage</label>
+    <select id="patternType" style="width:100%;padding:13px;border:1px solid #d2d2d7;border-radius:12px;font-size:16px;background:#fff">
+      <option value="train">🚆 Zug</option><option value="car">🚗 Auto</option><option value="home">🏠 Homeoffice</option><option value="off">🌴 Frei / Urlaub</option>
+    </select>
+  </div>
+  <div class="patternDays" id="patternDays">
+    <button type="button" data-day="1" class="selected">Mo</button><button type="button" data-day="2" class="selected">Di</button><button type="button" data-day="3" class="selected">Mi</button><button type="button" data-day="4" class="selected">Do</button><button type="button" data-day="5" class="selected">Fr</button>
+  </div>
+  <button class="primary" type="button" onclick="applyCommutePattern()">Nächste 6 Wochen eintragen</button>
+  <div class="patternResult" id="patternResult"></div>
+</section>
+
+<h2>Dieser Monat</h2>
+<section class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+    <button class="action" style="padding:10px 14px;box-shadow:none;background:#f5f5f7" id="calendarPrev" type="button" aria-label="Vorheriger Monat">‹</button>
+    <div style="text-align:center;flex:1"><b id="calendarTitle">—</b></div>
+    <button class="action" style="padding:10px 14px;box-shadow:none;background:#f5f5f7" id="calendarNext" type="button" aria-label="Nächster Monat">›</button>
+  </div>
+  <div class="calendar" id="calendar"></div>
+</section>
+<div class="calendarHint">Tippe auf einen Werktag, um ihn nachzutragen oder zu ändern.</div>
+<div class="onboard" id="dayEditor" style="display:none;z-index:10">
+  <div class="onbox">
+    <h1 id="editDateTitle">Fahrt eintragen</h1>
+    <p>Wie bist du an diesem Tag zur Arbeit gefahren?</p>
+    <div class="actions">
+      <button class="action train" onclick="setDay('train')">🚆 Zug</button>
+      <button class="action car" onclick="setDay('car')">🚗 Auto</button>
+      <button class="action" onclick="setDay('home')">🏠 Homeoffice</button>
+      <button class="action" onclick="setDay('off')">🌴 Frei / Urlaub</button>
+    </div>
+    <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="clearDay()">Eintrag löschen</button>
+    <button class="primary" style="background:transparent;color:#007aff" onclick="closeEditor()">Abbrechen</button>
+  </div>
+</div>
+<h2>Deine Kosten</h2>
+<section class="card">
+<div class="row"><div>Gesamte Autokosten pro Arbeitstag<small>Hin & zurück, inklusive anteiliger Fixkosten</small></div><b id="autoCost">—</b></div>
+<div class="row"><div>Zug pro Arbeitstag<small>Dein eigener Ticketanteil</small></div><b id="trainCost">—</b></div>
+<div class="row"><div>Heute vermiedene Autokosten<small>Nur Kosten, die durch weniger Kilometer sinken</small></div><b id="perDay">—</b></div>
+<div class="row"><div>Netto diesen Monat<small>Vermiedene Autokosten minus dein eigener Ticketanteil</small></div><b id="netMonth">—</b></div>
+</section>
+
+<h2>Was wäre wenn?</h2>
+<section class="card scenarioCard">
+  <div class="label">Mehr Zugtage = mehr vermeidbare Autokosten</div>
+  <p class="sub" style="margin:8px 0 14px">Sieh sofort, was zusätzliche Zugtage pro Woche für deine persönliche Netto-Ersparnis bedeuten.</p>
+  <div class="row" style="padding-top:0">
+    <div><b id="scenarioDaysLabel">1 Zugtag mehr / Woche</b><small>zusätzliche Zugtage</small></div>
+    <input id="scenarioDays" type="range" min="0" max="5" step="1" value="1" style="width:48%">
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="scenarioMonth">—</b><span>zusätzlich / Monat</span></div>
+    <div class="stat"><b id="scenarioYear">—</b><span>zusätzlich / Jahr</span></div>
+  </div>
+  <p class="sub" id="scenarioHint" style="margin-top:12px">Schätzung auf Basis deiner aktuellen kilometerabhängigen Autokosten und deines eigenen Ticketanteils.</p>
+</section>
+
+<h2>Dein Ticket-Break-even</h2>
+<section class="card">
+  <div class="label">Ab wann rechnet sich dein Monatsticket?</div>
+  <div class="saving" id="breakEvenDays" style="font-size:40px;letter-spacing:-2px;margin-bottom:8px">—</div>
+  <div class="sub" id="breakEvenText">Pendly vergleicht deinen eigenen Ticketanteil mit den vermeidbaren Autokosten pro Zugtag.</div>
+</section>
+
+<h2>So setzt sich deine Ersparnis zusammen</h2>
+<section class="card">
+<div class="row"><div>⛽ Kraftstoff / Energie<small>kilometerabhängige Kosten</small></div><b id="breakFuel">—</b></div>
+<div class="row"><div>🔧 Wartung & Reifen<small>geschätzte kilometerabhängige Kosten</small></div><b id="breakMaintenance">—</b></div>
+<div class="row"><div>📉 Wertverlust<small>geschätzte kilometerabhängige Näherung</small></div><b id="breakDepreciation">—</b></div>
+<div class="row" style="border-top:1px solid #e5e5ea;padding-top:12px"><div><b>Vermeidbare Autokosten</b><small>vor Abzug deines Zugtickets</small></div><b id="breakAvoidable">—</b></div>
+<div class="row"><div><b>Zugticket</b><small>dein eigener Anteil</small></div><b id="breakTicket">—</b></div>
+<div class="row"><div><b>Netto-Ersparnis</b><small>das bleibt dir tatsächlich</small></div><b id="breakNet">—</b></div>
+<p class="sub" style="margin-top:12px">Hinweis: Das ist eine Schätzung. Besonders Wertverlust und Wartung sind nicht für jedes Auto exakt vorhersehbar. Die Fixkosten werden bewusst nicht als Ersparnis einer einzelnen Zugfahrt gezählt.</p>
+<div class="row"><div>Berechnungsbasis<small>Transparenz statt Scheingenauigkeit</small></div><b id="estimateBasis">—</b></div>
+</section>
+<h2>Dein Fortschritt</h2>
+<section class="card progressHero">
+  <div class="heroTop">
+    <div><span class="badge" id="progressBadge">🌱 Pendly-Fortschritt</span><h3 id="progressTitle">Diesen Monat</h3><div class="heroMeta" id="progressSubtitle">Deine bisherige Bilanz</div></div>
+    <div style="text-align:right"><div class="heroNumber" id="progressSaved">0,00 €</div><div class="heroMeta">Netto gespart</div></div>
+  </div>
+  <div class="co2"><b id="progressCo2">0,0 kg</b><small>geschätztes CO₂ eingespart durch deine vermiedenen Autofahrten</small></div>
+  <div class="stats">
+    <div class="stat"><b id="progressTrain">0</b><span>vermiedene Autofahrten</span></div>
+    <div class="stat"><b id="progressTrips">0</b><span>Arbeitstage erfasst</span></div>
+  </div>
+</section>
+<h2>Dein Sparziel · Netto-Ersparnis</h2>
+<section class="card"><div class="row"><div><b id="goalText">0 € / 2.000 €</b><small id="goalPct">0 % erreicht</small></div><div style="width:110px"><input id="goal" type="number" step="100" value="2000"></div></div><div class="goalbar"><div class="goalfill" id="goalFill"></div></div></section>
+<h2>Finanzguru-Import</h2>
+<section class="card">
+  <div class="label">Tatsächliche Autokosten statt Schätzung</div>
+  <p class="sub" style="margin:8px 0 16px">Lade deinen Finanzguru-Excel-Export hoch. Pendly sucht darin automatisch nach Tanken, Kfz-Steuer, Parken, Werkstatt/Service, Kfz-Versicherung und Leasing.</p>
+<p class="sub" style="margin:-8px 0 14px">🔒 <b>Nur lokal verarbeitet:</b> Die Originaldatei bleibt auf deinem Gerät und wird nicht zu Pendly hochgeladen.</p>
+  <input id="fgFile" type="file" accept=".xlsx,.xls,.csv" style="font-size:14px">
+  <div id="fgStatus" class="sub" style="margin-top:12px"></div>
+  <div id="fgResult" style="display:none;margin-top:14px">
+    <div class="stats">
+      <div class="stat"><b id="fgAnnual">—</b><span>erkannte Autoausgaben / Jahr</span></div>
+      <div class="stat"><b id="fgKmCost">—</b><span>Autoausgaben / km</span></div>
+    </div>
+    <p class="sub" style="margin-top:12px">Diese Auswertung nutzt deine echten Buchungen. Wertverlust und nicht erfasste Kosten sind noch nicht enthalten.</p>
+    <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="applyFinancialGuru()">Als Grundlage verwenden</button>
+  </div>
+</section>
+
+
+</div><div id="statsTab" class="tabPanel" style="display:none">
+<header style="margin-top:8px"><div class="logo">Statistik</div><div class="month" id="statsMonth"></div></header>
+<h2>Deine Pendly-Bilanz</h2>
+<section class="card">
+  <div class="periods">
+    <button id="periodWeek" class="active" onclick="setStatsPeriod('week')">Woche</button>
+    <button id="periodMonth" onclick="setStatsPeriod('month')">Monat</button>
+    <button id="periodYear" onclick="setStatsPeriod('year')">Jahr</button>
+  </div>
+  <div style="margin-top:20px"><div class="label" id="periodLabel">Diese Woche</div><div class="statBig" id="periodNet">0,00 €</div><div class="trend" id="periodCompare"></div></div>
+  <div class="reviewGrid">
+    <div class="reviewMetric"><b id="sTrain">0</b><span>vermiedene Autofahrten</span></div>
+    <div class="reviewMetric"><b id="sCar">0</b><span>Autofahrten</span></div>
+    <div class="reviewMetric"><b id="sHome">0</b><span>Homeoffice-Tage</span></div>
+    <div class="reviewMetric"><b id="sAvoided">0,00 €</b><span>Autokosten vermieden</span></div>
+    <div class="reviewMetric"><b id="sCo2">0,0 kg</b><span>geschätztes CO₂ eingespart</span></div>
+  </div>
+</section>
+
+<h2>Monats-Review</h2>
+<section class="card review">
+  <span class="badge">📊 Rückblick</span>
+  <h3 style="font-size:24px;letter-spacing:-.7px;margin:12px 0 4px" id="reviewTitle">Diesen Monat</h3>
+  <p class="sub" id="reviewText">Deine aktuelle Pendly-Bilanz.</p>
+  <div class="reviewGrid">
+    <div class="reviewMetric"><b id="reviewMoney">0,00 €</b><span>Netto gespart</span></div>
+    <div class="reviewMetric"><b id="reviewCo2">0,0 kg</b><span>geschätztes CO₂ eingespart</span></div>
+    <div class="reviewMetric"><b id="reviewTrips">0</b><span>Autofahrten vermieden</span></div>
+    <div class="reviewMetric"><b id="reviewRate">0 %</b><span>mehr Zug statt Auto</span></div>
+  </div>
+</section>
+
+<h2>Jahresrückblick</h2>
+<section class="card">
+  <div class="label" id="annualReportTitle">Dieses Jahr</div>
+  <div class="statBig" id="annualReportNet">0,00 €</div>
+  <div class="trend" id="annualReportNetLabel">geschätzte Netto-Ersparnis</div>
+  <div class="reviewGrid" style="margin-top:14px">
+    <div class="reviewMetric"><b id="annualTrain">0</b><span>Zugtage</span></div>
+    <div class="reviewMetric"><b id="annualCar">0</b><span>Autotage</span></div>
+    <div class="reviewMetric"><b id="annualHome">0</b><span>Homeoffice-Tage</span></div>
+    <div class="reviewMetric"><b id="annualAvoided">0,00 €</b><span>Autokosten vermieden</span></div>
+    <div class="reviewMetric"><b id="annualCo2">0,0 kg</b><span>geschätzte CO₂-Einsparung</span></div>
+    <div class="reviewMetric"><b id="annualRate">0 %</b><span>Zuganteil der Arbeitstage</span></div>
+  </div>
+  <button class="secondary" type="button" onclick="shareAnnualReport()">Jahresbericht teilen</button>
+</section>
+
+<h2>Dein Meilenstein</h2>
+<section class="card">
+  <div class="row"><div><b id="milestoneTitle">🌱 Erster Schritt</b><small id="milestoneText">Jede vermiedene Autofahrt zählt.</small></div><b id="milestoneValue">0 / 10</b></div>
+  <div class="goalbar"><div class="goalfill" id="milestoneFill"></div></div>
+</section>
+
+<h2>Was bedeutet das?</h2>
+<section class="card">
+  <p class="sub">CO₂ wird als Schätzung aus deiner Hin- und Rückstrecke berechnet. Pendly vergleicht die angenommene Autoemission mit einer durchschnittlichen Emission des Zugverkehrs. Fixkosten wie Versicherung, Steuer und Stellplatz laufen weiter und werden deshalb nicht als vermiedene Kosten einer einzelnen Zugfahrt gezählt.</p>
+</section>
+</div>
+
+<div id="settingsTab" class="tabPanel" style="display:none">
+<header style="margin-top:8px"><div class="logo">Einstellungen</div><div class="account" onclick="accountMenu()">Konto</div></header>
+
+<h2>Dein Arbeitsweg</h2>
+<section class="card">
+  <div class="row"><div><b>Entfernung zur Arbeit</b><small>einfache Strecke</small></div><div style="width:110px"><input id="setDistance" type="number" step=".1"></div></div>
+  <div class="row"><div><b>Arbeitstage</b><small>pro Monat</small></div><div style="width:110px"><input id="setDays" type="number" step="1"></div></div>
+  <div class="row"><div><b>Jährliche Fahrleistung</b><small>für die Kostenberechnung</small></div><div style="width:110px"><input id="setAnnualKm" type="number" step="500"></div></div>
+</section>
+
+<h2>Dein Auto</h2>
+<section class="card">
+  <div class="row"><div><b>Autokosten gesamt</b><small>inkl. Fixkosten wie Versicherung & Steuer</small></div><b id="setCarKmDisplay">—</b></div>
+  <div class="row"><div><b>Vermeidbare Kosten / km</b><small>Grundlage für deine Ersparnis pro Zugfahrt</small></div><b id="setAvoidableKmDisplay">—</b></div>
+  <div class="row"><div><b>Versicherung</b><small>pro Monat</small></div><div style="width:110px"><input id="setInsurance" type="number" step=".01"></div></div>
+  <div class="row"><div><b>Wartung & Reifen</b><small>pro Monat · wird kilometerabhängig geschätzt</small></div><div style="width:110px"><input id="setMaintenance" type="number" step=".01"></div></div>
+</section>
+
+<h2>Kraftstoff / Energie</h2>
+<section class="card">
+  <p class="sub" style="margin:0 0 12px">Pendly verwendet für Zugtage neu abgerufene Kraftstoffpreise. Bereits gespeicherte alte Kraftstoffpreise werden nicht als Quelle verwendet.</p>
+  <div class="row"><div><b>Kraftstoff</b><small>was du tankst</small></div><div style="width:145px"><select id="setFuelType"><option value="e5">Super E5</option><option value="e10">Super E10</option><option value="diesel">Diesel</option></select></div></div>
+  <div class="row"><div><b>Verbrauch</b><small>Liter pro 100 km</small></div><div style="width:130px"><input id="setFuelConsumption" type="number" step="0.1" min="0" placeholder="6,5"></div></div>
+  <div class="row"><div><b>Pendel-PLZ</b><small>für den regionalen Kraftstoffpreis</small></div><div style="width:130px"><input id="setFuelPostcode" inputmode="numeric" maxlength="5" placeholder="46397"></div></div>
+  <div class="row"><div><b>Ersatzpreis</b><small>wird genutzt, wenn kein Tagespreis verfügbar ist</small></div><div style="width:130px"><input id="setFuelFallbackPrice" type="number" step="0.001" min="0" placeholder="1,75"></div></div>
+  <div class="row"><div><b>Aktueller Preis</b><small id="fuelPriceSource">wird für Zugtage geladen</small></div><b id="setFuelLivePrice">–</b></div>
+  <div class="row"><div><b>Kraftstoffkosten / km</b><small>wird aus den abgerufenen Preisen berechnet</small></div><b id="setFuelKmDisplay">0,000 €/km</b></div>
+  <button class="primary" type="button" onclick="refreshFuelPricesForTrainDays()">Preise für meine Zugtage aktualisieren</button><button class="secondary" type="button" onclick="openFuelPriceDetails()" style="margin-top:10px">Preisdetails meiner Zugtage anzeigen</button>
+  <div id="fuelSettingsHint" class="sub" style="margin-top:10px"></div>
+  <p class="sub" style="margin:10px 0 0">Quelle: Tankerkönig · MTS-K für aktuelle Tage · MTS-K für historische Tage. Die Preise werden über Supabase sicher abgerufen.</p>
+</section>
+<h2>Weitere Fixkosten</h2>
+<section class="card">
+  <div class="row"><div><b>Kfz-Steuer</b><small>pro Jahr</small></div><div style="width:110px"><input id="setTax" type="number" step=".01"></div></div>
+  <div class="row"><div><b>Parken / Stellplatz</b><small>pro Monat</small></div><div style="width:110px"><input id="setParking" type="number" step=".01"></div></div>
+</section>
+
+<h2>Dein Zugticket</h2>
+<section class="card">
+  <div class="row"><div><b>Dein Anteil</b><small>was du selbst pro Monat zahlst</small></div><div style="width:110px"><input id="setTicket" type="number" step=".01"></div></div>
+  <p class="sub" style="margin-top:10px">Wenn dein Arbeitgeber das Ticket komplett übernimmt, trägst du hier <b>0 €</b> ein.</p>
+</section>
+
+<h2>CO₂-Berechnung</h2>
+<section class="card">
+  <div class="row"><div><b>Auto</b><small>angenommene Emission</small></div><b id="setCarCo2Display">192 g/km</b></div>
+  <div class="row"><div><b>Zug</b><small>angenommene Emission</small></div><b id="setTrainCo2Display">30 g/km</b></div>
+  <p class="sub" style="margin-top:10px">Die Faktoren sind bewusst als Schätzwerte hinterlegt. Die Berechnung berücksichtigt Hin- und Rückweg.</p>
+</section>
+
+<h2>Sparziel · Netto-Ersparnis</h2>
+<section class="card">
+  <div class="row"><div><b>Jahresziel</b><small>wie viel Netto-Ersparnis möchtest du erreichen?</small></div><div style="width:110px"><input id="setGoal" type="number" step="100"></div></div>
+</section>
+
+<h2>Daten</h2>
+<section class="card">
+  <button class="primary" onclick="saveSettings()">Änderungen speichern</button>
+  <button class="primary" style="background:#e5e5ea;color:#1d1d1f" onclick="resetData()">Fahrten zurücksetzen</button>
+</section>
+<h2>Feedback & Fehler melden</h2>
+<section class="card">
+  <p class="sub" style="margin-top:0">Ist etwas unklar, funktioniert etwas nicht oder hast du eine Idee? Schick uns direkt eine Meldung. Wir kümmern uns darum.</p>
+  <button class="primary" type="button" onclick="openFeedback()">Feedback senden</button>
+  <div id="feedbackHistory" class="feedbackHistory"></div>
+</section>
+<h2>Entwicklung von Pendly</h2>
+<section class="card changelogCard" aria-label="Entwicklung von Pendly">
+  <p class="sub changelogIntro">Hier siehst du die wichtigsten Entwicklungsschritte von Pendly – von den ersten Berechnungen bis zur aktuellen Version.</p>
+  <div class="changelogTimeline">
+    <article class="changelogItem current">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.74</b><span>26.09.2026</span></div>
+        <h3>Jahresrückblick verständlicher</h3>
+        <ul>
+          <li>Ticketkosten im laufenden Jahr werden nur für bereits angefallene Monate berücksichtigt.</li>
+          <li>Zugtage, Autotage und CO₂-Einsparung werden eindeutiger bezeichnet.</li>
+          <li>Die aktuelle Netto-Ersparnis wird als „bisher“ gekennzeichnet.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.70–0.14.73</b><span>26.09.2026</span></div>
+        <h3>Stabilität, Datenschutz & Bedienung</h3>
+        <ul>
+          <li>Onboarding und Schnellstart verbessert.</li>
+          <li>Rechtliche Seiten, Account-Löschung und Datenexport ausgebaut.</li>
+          <li>Accessibility, Tests und CI verbessert.</li>
+          <li>App-Struktur, PWA und Performance weiterentwickelt.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.22–0.14.36</b><span>26.09.2026</span></div>
+        <h3>Berechnung & Cloud stabilisiert</h3>
+        <ul>
+          <li>Fahrtkosten zentralisiert und Statistiken vereinheitlicht.</li>
+          <li>Wertverlust, Wartung, CO₂ und Ticketkosten transparenter berechnet.</li>
+          <li>Kalender und Supabase-Datenladen robuster gemacht.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>v0.14.13–0.14.21</b><span>23.–26.09.2026</span></div>
+        <h3>Grundlagen für die heutige Pendly-App</h3>
+        <ul>
+          <li>Kraftstoffpreise und historische Preisquellen weiterentwickelt.</li>
+          <li>Versionsanzeige und erste Stabilitätsverbesserungen ergänzt.</li>
+          <li>Persönliche Berechnung und Pendelhistorie ausgebaut.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="changelogItem">
+      <div class="changelogDot" aria-hidden="true"></div>
+      <div class="changelogContent">
+        <div class="changelogMeta"><b>Frühe Entwicklung</b><span>September 2026</span></div>
+        <h3>Von der Idee zur persönlichen Pendelbilanz</h3>
+        <ul>
+          <li>Berechnung vermiedener Autokosten als Kern von Pendly etabliert.</li>
+          <li>Fahrten, Homeoffice und freie Tage im Kalender erfassbar gemacht.</li>
+          <li>Statistik, Sparziel und Jahresrückblick aufgebaut.</li>
+        </ul>
+      </div>
+    </article>
+  </div>
+  <p class="changelogFooter">Die vollständige technische Historie steht im GitHub-Änderungsprotokoll.</p>
+</section>
+<h2>Über Pendly</h2>
+<section class="card">
+  <div class="row"><div><b>App-Version</b><small>Installierte Pendly-Version</small></div><b>v0.15.5</b></div>
+</section>
+</div>
+</div>
+<div class="feedbackModal hidden" id="feedbackModal" aria-hidden="true">
+  <div class="feedbackBox">
+    <div class="feedbackHead"><h2>Feedback & Fehler melden</h2><button class="profileClose" type="button" onclick="closeFeedback()">×</button></div>
+    <p class="sub">Beschreibe kurz, was passiert ist. Wir prüfen deine Meldung und halten dich per E-Mail auf dem Laufenden.</p>
+    <div class="field"><label>E-Mail-Adresse</label><input id="feedbackEmail" type="email" autocomplete="email" placeholder="du@beispiel.de"></div>
+    <div class="field"><label>Art der Meldung</label><select id="feedbackCategory"><option value="bug">Fehler / Problem</option><option value="feedback">Feedback / Verbesserung</option><option value="question">Frage</option></select></div>
+    <div class="field"><label>Titel</label><input id="feedbackSubject" type="text" maxlength="160" placeholder="Was ist passiert?"></div>
+    <div class="field"><label>Beschreibung</label><textarea id="feedbackMessage" rows="6" maxlength="5000" placeholder="Beschreibe möglichst genau, was du gemacht hast und was anschließend passiert ist."></textarea></div>
+    <div class="sub feedbackMeta">Pendly-Version <b id="feedbackVersion">v0.15.5</b></div>
+    <button class="primary" id="feedbackSubmit" type="button" onclick="submitFeedback()">Meldung senden</button>
+    <div class="feedbackHint" id="feedbackHint"></div>
+  </div>
+</div><div class="fuelPriceModal hidden" id="fuelPriceModal" aria-hidden="true"><div class="fuelPriceBox"><div class="fuelPriceHead"><h2>Preise deiner Zugtage</h2><button class="fuelPriceClose" type="button" onclick="closeFuelPriceDetails()">×</button></div><p class="sub" style="margin:0 0 14px">Hier siehst du für jeden Zugtag den Literpreis, den Pendly für die Berechnung verwendet hat.</p><div class="fuelPriceList" id="fuelPriceList"></div></div></div><div class="profileModal hidden" id="profileModal" aria-hidden="true"><div class="profileBox"><div class="profileHead"><h2>Dein Konto</h2><button class="profileClose" type="button" onclick="closeAccount()">×</button></div><div class="profileSection"><h3>Persönliche Angaben</h3><div class="profileGrid"><div class="field" style="margin:0"><label>Vorname</label><input id="profileFirstName" type="text" autocomplete="given-name" placeholder="Vorname"></div><div class="field" style="margin:0"><label>Nachname</label><input id="profileLastName" type="text" autocomplete="family-name" placeholder="Nachname"></div></div><div class="field"><label>E-Mail-Adresse</label><input id="profileEmail" type="email" readonly style="background:#f5f5f7;color:#6e6e73"></div><button class="primary" type="button" onclick="saveProfile()">Profil speichern</button><div class="profileHint" id="profileHint"></div></div><div class="profileSection"><h3>Passwort</h3><div class="field"><label>Aktuelles Passwort</label><input id="profileCurrentPassword" type="password" autocomplete="current-password" placeholder="Aktuelles Passwort"></div><div class="field"><label>Neues Passwort</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Mindestens 12 Zeichen"></div><div class="field"><label>Neues Passwort wiederholen</label><input id="profileNewPasswordRepeat" type="password" autocomplete="new-password" placeholder="Neues Passwort erneut eingeben"></div><button class="secondary" type="button" onclick="changePassword()">Passwort ändern</button></div><div class="profileActions"><button class="secondary" type="button" onclick="exportPendlyJSON()">Daten als JSON exportieren</button><button class="secondary" type="button" onclick="exportPendlyCSV()">Fahrten als CSV exportieren</button><button class="danger" type="button" onclick="deleteAccount()">Konto dauerhaft löschen</button><button class="danger" type="button" onclick="signOut()">Abmelden</button></div></div></div><nav class="bottom" id="bottomNav" aria-label="Hauptnavigation">
+  <button class="active" type="button" onclick="showTab('overview',this)">
+    <span class="navIcon">⌂</span><span class="navLabel">Übersicht</span>
+  </button>
+  <button type="button" onclick="showTab('stats',this)">
+    <span class="navIcon">▥</span><span class="navLabel">Statistik</span>
+  </button>
+  <button type="button" onclick="showTab('settings',this)">
+    <span class="navIcon">⚙</span><span class="navLabel">Einstellungen</span>
+  </button>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/pendly/sw.js').catch(e=>console.warn('Pendly-Service-Worker:',e)));}</script>
+<footer style="text-align:center;padding:28px 16px;color:#8e8e93;font-size:12px"><a href="/pendly/datenschutz.html" style="color:inherit">Datenschutz</a> · <a href="/pendly/impressum.html" style="color:inherit">Impressum</a> · <a href="/pendly/nutzungsbedingungen.html" style="color:inherit">Nutzungsbedingungen</a></footer>
+</body></html>
