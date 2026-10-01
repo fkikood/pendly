@@ -52,7 +52,7 @@ async function load(){
 }
 function render(){
  const f=$('filter').value;
- $('reports').innerHTML=rows.filter(r=>f==='all'||r.status===f).map(r=>'<article class="adminItem" data-id="'+esc(r.id)+'"><div class="adminActions"><h3 style="flex:1">'+esc(r.subject||'Ohne Titel')+'</h3><span class="badge">'+esc(statusLabel(r.status))+'</span></div><div class="adminMeta">'+esc(r.email)+' · '+esc(r.category)+' · '+esc(r.app_version||'Version unbekannt')+' · '+new Date(r.created_at).toLocaleString('de-DE')+'</div><p class="adminMessage">'+esc(r.message)+'</p><p class="adminMeta">Interne Notiz</p><div class="notes" aria-live="polite">Notizen werden geladen …</div><div class="adminControls"><select class="status" aria-label="Status"><option value="open" '+(r.status==='open'?'selected':'')+'>Offen</option><option value="in_progress" '+(r.status==='in_progress'?'selected':'')+'>In Arbeit</option><option value="resolved" '+(r.status==='resolved'?'selected':'')+'>Erledigt</option></select><textarea class="noteInput" maxlength="5000" placeholder="Interne Analyse, Lösung oder Prüfergebnis (nur Admin sichtbar)"></textarea><button class="primary saveBtn" type="button">Änderungen speichern</button></div><p class="adminMeta result" role="status"></p></article>').join('')||'<p class="sub">Keine Meldungen in diesem Filter.</p>';
+ $('reports').innerHTML=rows.filter(r=>f==='all'||r.status===f).map(r=>'<article class="adminItem" data-id="'+esc(r.id)+'"><div class="adminActions"><h3 style="flex:1">'+esc(r.subject||'Ohne Titel')+'</h3><span class="badge">'+esc(statusLabel(r.status))+'</span></div><div class="adminMeta">'+esc(r.email)+' · '+esc(r.category)+' · '+esc(r.app_version||'Version unbekannt')+' · '+new Date(r.created_at).toLocaleString('de-DE')+'</div><p class="adminMessage">'+esc(r.message)+'</p><p class="adminMeta">Interne Notiz</p><div class="notes" aria-live="polite">Notizen werden geladen …</div><div class="adminControls"><select class="status" aria-label="Status"><option value="open" '+(r.status==='open'?'selected':'')+'>Offen</option><option value="in_progress" '+(r.status==='in_progress'?'selected':'')+'>In Arbeit</option><option value="resolved" '+(r.status==='resolved'?'selected':'')+'>Erledigt</option></select><textarea class="publicReply" maxlength="2000" placeholder="Rückmeldung an den Nutzer (wird bei Erledigung per E-Mail mitgeteilt)"></textarea><textarea class="noteInput" maxlength="5000" placeholder="Interne Analyse, Lösung oder Prüfergebnis (nur Admin sichtbar)"></textarea><button class="primary saveBtn" type="button">Änderungen speichern</button></div><p class="adminMeta result" role="status"></p></article>').join('')||'<p class="sub">Keine Meldungen in diesem Filter.</p>';
  for(const el of $('reports').querySelectorAll('.adminItem')){loadNotes(el);el.querySelector('.saveBtn').addEventListener('click',()=>save(el));}
 }
 async function loadNotes(el){
@@ -61,10 +61,10 @@ async function loadNotes(el){
  box.innerHTML=error?'<span class="adminError">Notizen konnten nicht geladen werden.</span>':(data||[]).map(n=>'<div class="adminNote">'+esc(n.note)+'<div class="adminMeta">'+new Date(n.created_at).toLocaleString('de-DE')+'</div></div>').join('')||'<span class="adminMeta">Noch keine internen Notizen.</span>';
 }
 async function save(el){
- const id=el.dataset.id, status=el.querySelector('.status').value, note=el.querySelector('.noteInput').value.trim(), result=el.querySelector('.result'), btn=el.querySelector('.saveBtn');
+ const id=el.dataset.id, status=el.querySelector('.status').value, note=el.querySelector('.noteInput').value.trim(), publicReply=el.querySelector('.publicReply').value.trim(), result=el.querySelector('.result'), btn=el.querySelector('.saveBtn');
  btn.disabled=true;result.textContent='Speichert …';
  try{
-  const {error}=await client.from('feedback_reports').update({status,resolution_note:status==='resolved'?(note||null):null}).eq('id',id);
+  const {error}=await client.from('feedback_reports').update({status,resolution_note:status==='resolved'?(publicReply||null):null}).eq('id',id);
   if(error)throw error;
   if(note){const {data:{user}}=await client.auth.getUser();const {error:noteError}=await client.from('feedback_admin_notes').insert({feedback_id:id,admin_user_id:user.id,note});if(noteError)throw noteError;}
   result.textContent='Gespeichert. Status: '+statusLabel(status)+'.';
