@@ -194,6 +194,8 @@ function updateAccountLabel(){
 function accountMenu(){
   if(!currentUser)return;
   const meta=currentUser.user_metadata||{};
+  const adminLink=$('adminDashboardLink');
+  if(adminLink) adminLink.style.display=currentUser.app_metadata?.role==='admin'?'block':'none';
   $('profileFirstName').value=meta.first_name||'';
   $('profileLastName').value=meta.last_name||'';
   $('profileEmail').value=currentUser.email||'';
