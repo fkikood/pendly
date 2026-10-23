@@ -116,7 +116,7 @@
 <div id="pendlyState" aria-hidden="true" style="display:none">
 <input id="carKm" value="0"><input id="carPurchasePrice" value="0"><input id="carAge" value="0"><input id="avoidableKm" value="0"><input id="annualKm" value="12500"><input id="fuelKm" value="0"><input id="maintenanceKm" value="0"><input id="depreciationKm" value="0">
 <input id="insurance" value="90"><input id="maintenance" value="70"><input id="tax" value="180"><input id="parking" value="0">
-<input id="ticket" value="0"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
+<input id="ticket" value="0"><input id="porschePrice" value="150000"><input id="setFuelPrice" value=""><input id="co2CarKgKm" value="0.192"><input id="days" value="20"><input id="distance" value="0"><input id="goal" value="2000">
 </div>
 <div class="app">
 <div id="overviewTab" class="tabPanel"><header class="appHeader"><div class="appHeaderMain"><div class="logo">Pendly</div><button class="account appAccount" id="accountBtn" type="button">Konto</button></div><div class="appHeaderMeta"><div class="month" id="month"></div></div></header>
@@ -130,6 +130,15 @@
 <div class="stat"><b id="carDays">0</b><span>Autofahrten</span></div>
 </div>
 <div class="savingGoal"><div class="savingGoalTop"><span>Sparziel · Netto-Ersparnis</span><span id="savingGoalPct">0 %</span></div><div class="savingGoalBar"><div class="savingGoalFill" id="savingGoalFill"></div></div></div>
+</section>
+<section class="card" id="porscheGoalCard" style="margin-top:14px">
+  <div class="label">🏎️ Dein Porsche-Ziel</div>
+  <div id="porscheTrips" style="font-size:clamp(24px,6vw,32px);font-weight:750;letter-spacing:-.7px;margin:8px 0">Noch nicht berechnet</div>
+  <div id="porschePerRide" class="sub">Geschätzte Netto-Ersparnis pro Zugtag: —</div>
+  <div style="height:8px;background:#e5e5ea;border-radius:999px;overflow:hidden;margin:14px 0 8px"><div id="porscheProgressFill" style="height:100%;width:0;background:#007aff;border-radius:999px;transition:width .2s"></div></div>
+  <div id="porscheProgress" class="sub">0 € von 150.000 €</div>
+  <div class="field" style="margin:14px 0 0"><label for="porscheTargetInput">Dein Porsche-Zielpreis (€)</label><input id="porscheTargetInput" type="number" min="1" step="1000" value="150000" inputmode="decimal"></div>
+  <p id="porscheHint" class="sub" style="margin:10px 0 0">Die Berechnung wird aus deinen persönlichen Pendeldaten geschätzt.</p>
 </section>
 <h2>Was ist heute?</h2>
 <p class="sub" style="margin:-8px 0 12px">Ein Tap – Pendly trägt den heutigen Tag ein.</p>
