@@ -905,7 +905,7 @@ function calculateTripEconomics(day){
 function updatePorscheGoal(currentNet){
   const targetInput=$('porscheTargetInput');
   const hiddenTarget=$('porschePrice');
-  const target=Math.max(1,Number(targetInput?.value||hiddenTarget?.value||150000));
+  const target=Math.max(1,Number((targetInput && document.activeElement===targetInput ? targetInput.value : hiddenTarget?.value)||targetInput?.value||150000));
   if(hiddenTarget) hiddenTarget.value=String(target);
   if(targetInput && document.activeElement!==targetInput) targetInput.value=String(target);
   const distance=Math.max(0,+$('distance')?.value||0);
