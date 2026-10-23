@@ -432,7 +432,7 @@ function getSettings(){
     insurance:+($('insurance')?.value||0), maintenance:+($('maintenance')?.value||0),
     tax:+($('tax')?.value||0), parking:+($('parking')?.value||0),
     ticket:+($('ticket')?.value||0), days:+($('days')?.value||0),
-    distance:+($('distance')?.value||0), goal:+($('goal')?.value||0), co2CarKgKm:+($('co2CarKgKm')?.value||CO2_CAR_DEFAULT_KG_PER_KM)
+    distance:+($('distance')?.value||0), goal:+($('goal')?.value||0), porschePrice:Math.max(1,+($('porschePrice')?.value||150000)), co2CarKgKm:+($('co2CarKgKm')?.value||CO2_CAR_DEFAULT_KG_PER_KM)
   };
 }
 function applySettings(s){
@@ -902,6 +902,31 @@ function calculateTripEconomics(day){
   return {fuel,maintenance,depreciation,avoidable,ticket,net:Math.max(0,avoidable-ticket),co2};
 }
 
+function updatePorscheGoal(currentNet){
+  const targetInput=$('porscheTargetInput');
+  const hiddenTarget=$('porschePrice');
+  const target=Math.max(1,Number((targetInput && document.activeElement===targetInput ? targetInput.value : hiddenTarget?.value)||targetInput?.value||150000));
+  if(hiddenTarget) hiddenTarget.value=String(target);
+  if(targetInput && document.activeElement!==targetInput) targetInput.value=String(target);
+  const distance=Math.max(0,+$('distance')?.value||0);
+  const avoidableKm=Math.max(0,+$('avoidableKm')?.value||+$('carKm')?.value||0);
+  const days=Math.max(1,+$('days')?.value||20);
+  const ticket=Math.max(0,+$('ticket')?.value||0);
+  const netPerTrain=Math.max(0,avoidableKm*distance*2-ticket/days);
+  const remaining=Math.max(0,target-Math.max(0,Number(currentNet)||0));
+  const trips=netPerTrain>0?Math.ceil(remaining/netPerTrain):null;
+  const countEl=$('porscheTrips');
+  const detailEl=$('porschePerRide');
+  const hintEl=$('porscheHint');
+  const progressEl=$('porscheProgress');
+  const fillEl=$('porscheProgressFill');
+  if(detailEl) detailEl.textContent='Geschätzte Netto-Ersparnis pro Zugtag: '+eur(netPerTrain);
+  if(progressEl) progressEl.textContent=eur(Math.min(target,Math.max(0,Number(currentNet)||0)))+' von '+eur(target);
+  if(fillEl) fillEl.style.width=Math.min(100,Math.max(0,Number(currentNet)||0)/target*100)+'%';
+  if(countEl) countEl.textContent=remaining<=0?'Geschafft! 🎉':trips===null?'Noch nicht berechenbar':'Noch '+trips.toLocaleString('de-DE')+' Zugfahrten';
+  if(hintEl) hintEl.textContent=remaining<=0?'Deine bisherige Netto-Ersparnis erreicht bereits deinen eingestellten Porsche-Zielpreis.':netPerTrain<=0?'Trage deine einfache Pendelstrecke und vermeidbaren Autokosten ein. Bei einer Ersparnis von 0 € pro Zugtag lässt sich die Anzahl noch nicht berechnen.':'Schätzung auf Basis deiner Pendelstrecke, vermeidbaren Autokosten und deines Ticketanteils. Der tatsächliche Kaufpreis kann abweichen.';
+}
+
 function calc(){
   // Defensive normalization: incomplete/legacy cloud data must never stop the UI.
   if(!data || typeof data!=='object') data={train:0,car:0,events:{},fuelPrices:{},fgAnnual:0,fgKmCost:0};
@@ -967,6 +992,7 @@ function calc(){
   // net savings including estimated depreciation. The secondary figure shows
   // the comparable amount without depreciation.
   $('saving').textContent=eur(net);
+  updatePorscheGoal(net);
   if($('savingWithDepreciation')) $('savingWithDepreciation').textContent=eur(savedWithoutDepreciation);
   const savingGoal=Math.max(0,+$('goal').value||2000);
   const savingPct=savingGoal>0?Math.min(100,Math.max(0,net/savingGoal*100)):0;
@@ -1518,6 +1544,11 @@ document.addEventListener('DOMContentLoaded',async()=>{
   // Auth starts in the compact login view; the demo is opt-in.
   setAuthMode('login');
   $('accountBtn').addEventListener('click',accountMenu);
+  const porscheTargetInput=$('porscheTargetInput');
+  if(porscheTargetInput){
+    porscheTargetInput.addEventListener('input',()=>{ $('porschePrice').value=String(Math.max(1,+porscheTargetInput.value||150000)); calc(); scheduleCloudSave(); });
+    porscheTargetInput.addEventListener('blur',()=>{ if(!(+porscheTargetInput.value>0))porscheTargetInput.value='150000'; $('porschePrice').value=porscheTargetInput.value; calc(); });
+  }
   // Defensive loading: a malformed local setting must never stop the auth flow.
   try{
     const savedFuelSettings=JSON.parse(localStorage.getItem('pendly-settings-'+(currentUser?.id||'guest'))||'null');
